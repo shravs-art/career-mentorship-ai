@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CareerLens — Experienced Path</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
+</head>
+<body>
+<div class="noise"></div>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="logo">
+    <a href="/" style="text-decoration:none;display:flex;align-items:center;gap:10px;">
+      <span class="logo-mark">⬡</span>
+      <span class="logo-text">CareerLens</span>
+    </a>
+  </div>
+  <div class="breadcrumb">
+    <span class="bc-done">01 Profile</span>
+    <span class="bc-sep">›</span>
+    <span class="bc-active">02 Skills</span>
+    <span class="bc-sep">›</span>
+    <span class="bc-todo">03 Results</span>
+  </div>
+</header>
+
+<!-- EXPERIENCED FORM -->
+<section class="form-section" style="padding-top:100px;">
+  <div class="form-container">
+    <div class="form-header">
+      <div class="form-step-label">Step 02 — Experienced Path 💼</div>
+      <h2 class="form-title">Analyze Your Skill Gap</h2>
+      <p id="welcomeMsg" style="color:var(--text-2);font-size:15px;margin-top:8px;"></p>
+    </div>
+
+    <form id="experiencedForm" class="mentor-form">
+
+      <!-- Current Career -->
+      <div class="field-group">
+        <label for="currentCareer" class="field-label">
+          <span class="field-num">01</span> Current Career / Role
+        </label>
+        <input type="text" id="currentCareer" class="field-input"
+          placeholder="e.g. Web Developer, Data Analyst, Software Tester..." autocomplete="off" />
+        <div style="font-size:12px;color:var(--text-3);margin-top:4px;">Optional — helps us give context to your transition</div>
+      </div>
+
+      <!-- Target Career -->
+      <div class="field-group">
+        <label for="targetCareer" class="field-label">
+          <span class="field-num">02</span> Target Career
+        </label>
+        <select id="targetCareer" class="field-input field-select" required>
+          <option value="" disabled selected>— Select your target career —</option>
+          {% for career in careers %}
+          <option value="{{ career.name }}">{{ career.icon }} {{ career.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Current Skills -->
+      <div class="field-group">
+        <label for="userSkills" class="field-label">
+          <span class="field-num">03</span> Current Skills
+          <span class="field-hint">comma-separated</span>
+        </label>
+        <textarea id="userSkills" class="field-input field-textarea"
+          placeholder="e.g. Python, SQL, JavaScript, React, Git, Docker..."
+          rows="3" required></textarea>
+        <div class="skill-chips" id="skillChips"></div>
+      </div>
+
+      <div id="formError" class="form-error" hidden></div>
+
+      <button type="submit" class="submit-btn" id="submitBtn">
+        <span class="btn-text">Analyze My Skill Gap</span>
+        <span class="btn-arrow">→</span>
+        <span class="btn-loader" hidden>
+          <span class="loader-dot"></span><span class="loader-dot"></span><span class="loader-dot"></span>
+        </span>
+      </button>
+    </form>
+  </div>
+</section>
+
+<!-- RESULTS (reuses same rendering as original) -->
+<section class="results-section" id="resultsSection" hidden>
+  <div class="results-container" id="resultsContainer"></div>
+</section>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <span class="logo-mark">⬡</span>
+    <span>CareerLens · Explainable AI Career Mentorship · Built with Flask + Python</span>
+  </div>
+</footer>
+
+<script>
+// ── Restore profile from Step 1 ───────────────────────────
+const name      = sessionStorage.getItem("cl_name")      || "there";
+const education = sessionStorage.getItem("cl_education") || "";
+document.getElementById("welcomeMsg").textContent =
+  `Welcome back, ${name}! Select your target career and list your current skills. We will identify exactly what you need to learn.`;
+
+// ── Live Skill Chips ──────────────────────────────────────
+const skillsInput = document.getElementById("userSkills");
+const skillChips  = document.getElementById("skillChips");
+skillsInput.addEventListener("input", () => {
+  const skills = skillsInput.value.split(",").map(s => s.trim()).filter(Boolean);
+  skillChips.innerHTML = "";
+  skills.forEach(skill => {
+    const chip = document.createElement("span");
+    chip.className = "skill-chip";
+    chip.textContent = skill;
+    skillChips.appendChild(chip);
+  });
+});
+
+// ── Form Submit ───────────────────────────────────────────
+const form   = document.getElementById("experiencedForm");
+const errBox = document.getElementById("formError");
+const btn    = document.getElementById("submitBtn");
+
+form.addEventListener("submit", async function(e) {
+  e.preventDefault();
+  errBox.hidden = true;
+
+  const skills  = document.getElementById("userSkills").value.trim();
+  const career  = document.getElementById("targetCareer").value;
+
+  if (!skills || !career) {
+    errBox.textContent = "Please enter your skills and select a target career.";
+    errBox.hidden = false;
+    return;
+  }
+
+  btn.disabled = true;
+  btn.querySelector(".btn-text").hidden = true;
+  btn.querySelector(".btn-arrow").hidden = true;
+  btn.querySelector(".btn-loader").hidden = false;
+
+  try {
+    const res  = await fetch("/analyze", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, skills, career }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Analysis failed.");
+    renderResults(data);
+  } catch (err) {
+    errBox.textContent = err.message;
+    errBox.hidden = false;
+  } finally {
+    btn.disabled = false;
+    btn.querySelector(".btn-text").hidden = false;
+    btn.querySelector(".btn-arrow").hidden = false;
+    btn.querySelector(".btn-loader").hidden = true;
+  }
+});
+
+// ── Results Renderer (identical logic to original main.js) ─
+function renderResults(data) {
+  const section   = document.getElementById("resultsSection");
+  const container = document.getElementById("resultsContainer");
+  const rc        = data.readiness_color;
+
+  container.innerHTML = `
+    <div class="results-header results-animate">
+      <div>
+        <div class="results-greeting">Skill gap analysis for</div>
+        <h2 class="results-title">${esc(data.name)}</h2>
+      </div>
+      <div class="career-badge">
+        <span class="career-badge-icon">${esc(data.career_icon)}</span>
+        <span class="career-badge-name">${esc(data.career)}</span>
+      </div>
+    </div>
+
+    <div class="score-panel results-animate">
+      <div class="score-card">
+        <div class="score-card-label">Match Score</div>
+        <div class="score-card-value ${rc}">${data.match_score}%</div>
+        <div class="score-card-sub">of required skills</div>
+      </div>
+      <div class="score-card">
+        <div class="score-card-label">Readiness</div>
+        <div class="score-card-value ${rc}">${esc(data.readiness_level)}</div>
+        <div class="score-card-sub">current level</div>
+      </div>
+      <div class="score-card">
+        <div class="score-card-label">Est. Learning Time</div>
+        <div class="score-card-value accent">${data.total_weeks}</div>
+        <div class="score-card-sub">weeks to job-ready</div>
+      </div>
+    </div>
+
+    <div class="progress-bar-wrap results-animate">
+      <div class="progress-bar-label">
+        <span>Skill Match Progress</span>
+        <span>${data.present_skills.length} / ${data.present_skills.length + data.missing_skills.length} skills</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+    </div>
+
+    <div class="results-animate">
+      <div class="section-title">Skills You Have <span class="tag tag-green">${data.present_skills.length} matched</span></div>
+      ${data.present_skills.length > 0
+        ? `<div class="present-skills-list">${data.present_skills.map(s => `<span class="present-chip">${esc(s)}</span>`).join("")}</div>`
+        : `<p style="color:var(--text-3);font-size:14px;margin-bottom:40px;">No matching skills yet — we will build from the ground up!</p>`
+      }
+    </div>
+
+    <div class="results-animate">
+      <div class="section-title">Skills to Learn <span class="tag tag-red">${data.missing_skills.length} gaps</span></div>
+      ${data.missing_skills.length === 0
+        ? `<div class="all-present-banner"><div class="all-present-icon">🎉</div><div class="all-present-title">You are Job-Ready!</div><p style="color:var(--text-3);font-size:14px;">You have all the required skills for this career path.</p></div>`
+        : `<div class="missing-skills-list">${data.missing_skills.map(s => renderMissing(s)).join("")}</div>`
+      }
+    </div>
+
+    ${data.roadmap.length > 0 ? `
+    <div class="roadmap-section results-animate">
+      <div class="section-title">Your Learning Roadmap <span class="tag tag-blue">${data.roadmap.length} steps</span></div>
+      <p style="color:var(--text-3);font-size:14px;margin-bottom:28px;">Each step is ordered by learning priority. The AI explains why each skill appears exactly where it does.</p>
+      <div class="roadmap-timeline" id="roadmapTimeline">
+        ${data.roadmap.map(step => renderStep(step)).join("")}
+      </div>
+      <div class="total-time-banner">
+        <div>
+          <div class="total-time-label">Total Estimated Time</div>
+          <div class="total-time-note">studying consistently ~10 hrs/week</div>
+        </div>
+        <div style="text-align:right">
+          <div class="total-time-value">${data.total_weeks} weeks</div>
+          <div class="total-time-note">approx. ${Math.round(data.total_weeks / 4)} months</div>
+        </div>
+      </div>
+    </div>` : ""}
+  `;
+
+  section.hidden = false;
+  section.scrollIntoView({ behavior: "smooth", block: "start" });
+
+  setTimeout(() => {
+    const fill = document.getElementById("progressFill");
+    if (fill) fill.style.width = `${data.match_score}%`;
+  }, 300);
+
+  setTimeout(() => {
+    document.querySelectorAll(".roadmap-step").forEach((step, i) => {
+      setTimeout(() => step.classList.add("visible"), i * 80);
+    });
+  }, 400);
+
+  document.querySelectorAll(".missing-skill-card").forEach(card => {
+    card.addEventListener("click", () => {
+      const panel  = card.querySelector(".xai-panel");
+      const isOpen = panel.classList.contains("open");
+      document.querySelectorAll(".xai-panel").forEach(p => p.classList.remove("open"));
+      document.querySelectorAll(".missing-skill-card").forEach(c => c.classList.remove("expanded"));
+      if (!isOpen) { panel.classList.add("open"); card.classList.add("expanded"); }
+    });
+  });
+}
+
+function renderMissing(skill) {
+  return `
+    <div class="missing-skill-card" tabindex="0">
+      <div class="priority-dot ${esc(skill.priority)}"></div>
+      <div>
+        <div class="missing-skill-name">${esc(skill.name)}</div>
+        <div class="missing-skill-priority">${skill.priority.charAt(0).toUpperCase() + skill.priority.slice(1)}</div>
+      </div>
+      <div class="missing-skill-weeks">~${skill.estimated_weeks}w</div>
+      <div class="xai-panel">
+        <div class="xai-label">⬡ AI Explanation — Why this skill?</div>
+        <p class="xai-reason">${esc(skill.reason)}</p>
+        <div class="xai-resources-label">Recommended Resources</div>
+        <div class="xai-resources">${skill.resources.map(r => `<span class="xai-resource">${esc(r)}</span>`).join("")}</div>
+      </div>
+    </div>`;
+}
+
+function renderStep(step) {
+  return `
+    <div class="roadmap-step ${esc(step.phase_key)}">
+      <div class="step-node">${step.step}</div>
+      <div class="step-card">
+        <div class="step-phase">${esc(step.phase)}</div>
+        <div class="step-skill">${esc(step.skill)}</div>
+        <div class="step-xai">${esc(step.xai_explanation)}</div>
+        <div class="step-meta">
+          <span class="step-weeks">⏱ ~${step.estimated_weeks} weeks</span>
+          <div class="step-resources">${step.resources.slice(0, 2).map(r => `<span class="step-resource">${esc(r)}</span>`).join("")}</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function esc(str) {
+  if (typeof str !== "string") return String(str);
+  return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+            .replace(/"/g,"&quot;").replace(/'/g,"&#039;");
+}
+</script>
+</body>
+</html>

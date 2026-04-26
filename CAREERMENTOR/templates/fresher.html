@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CareerLens — Fresher Path</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
+</head>
+<body>
+<div class="noise"></div>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="logo">
+    <a href="/" style="text-decoration:none;display:flex;align-items:center;gap:10px;">
+      <span class="logo-mark">⬡</span>
+      <span class="logo-text">CareerLens</span>
+    </a>
+  </div>
+  <div class="breadcrumb">
+    <span class="bc-done">01 Profile</span>
+    <span class="bc-sep">›</span>
+    <span class="bc-active">02 Interests</span>
+    <span class="bc-sep">›</span>
+    <span class="bc-todo">03 Results</span>
+  </div>
+</header>
+
+<!-- FRESHER FORM -->
+<section class="form-section" style="padding-top:100px;">
+  <div class="form-container">
+    <div class="form-header">
+      <div class="form-step-label">Step 02 — Fresher Path 🌱</div>
+      <h2 class="form-title">What Excites You?</h2>
+      <p id="welcomeMsg" style="color:var(--text-2);font-size:15px;margin-top:8px;"></p>
+    </div>
+
+    <form id="fresherForm" class="mentor-form">
+
+      <!-- Interests -->
+      <div class="field-group">
+        <label class="field-label">
+          <span class="field-num">01</span>
+          Areas of Interest
+          <span class="field-hint">select all that apply</span>
+        </label>
+        <div class="checkbox-grid">
+          <label class="check-card">
+            <input type="checkbox" name="interests" value="Web Development" />
+            <div class="check-inner"><span class="check-icon">🌐</span><span>Web Development</span></div>
+          </label>
+          <label class="check-card">
+            <input type="checkbox" name="interests" value="AI/ML" />
+            <div class="check-inner"><span class="check-icon">🤖</span><span>AI / Machine Learning</span></div>
+          </label>
+          <label class="check-card">
+            <input type="checkbox" name="interests" value="Data Analysis" />
+            <div class="check-inner"><span class="check-icon">📊</span><span>Data Analysis</span></div>
+          </label>
+          <label class="check-card">
+            <input type="checkbox" name="interests" value="UI Design" />
+            <div class="check-inner"><span class="check-icon">🎨</span><span>UI / UX Design</span></div>
+          </label>
+          <label class="check-card">
+            <input type="checkbox" name="interests" value="Problem Solving" />
+            <div class="check-inner"><span class="check-icon">🧩</span><span>Problem Solving</span></div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Subjects -->
+      <div class="field-group">
+        <label class="field-label">
+          <span class="field-num">02</span>
+          Favourite Subjects
+          <span class="field-hint">select all that apply</span>
+        </label>
+        <div class="checkbox-grid">
+          <label class="check-card">
+            <input type="checkbox" name="subjects" value="Mathematics" />
+            <div class="check-inner"><span class="check-icon">📐</span><span>Mathematics</span></div>
+          </label>
+          <label class="check-card">
+            <input type="checkbox" name="subjects" value="Programming" />
+            <div class="check-inner"><span class="check-icon">💻</span><span>Programming</span></div>
+          </label>
+          <label class="check-card">
+            <input type="checkbox" name="subjects" value="Statistics" />
+            <div class="check-inner"><span class="check-icon">📈</span><span>Statistics</span></div>
+          </label>
+          <label class="check-card">
+            <input type="checkbox" name="subjects" value="Design" />
+            <div class="check-inner"><span class="check-icon">✏️</span><span>Design</span></div>
+          </label>
+        </div>
+      </div>
+
+      <div id="formError" class="form-error" hidden></div>
+
+      <button type="submit" class="submit-btn" id="submitBtn">
+        <span class="btn-text">Find My Career Path</span>
+        <span class="btn-arrow">→</span>
+        <span class="btn-loader" hidden>
+          <span class="loader-dot"></span><span class="loader-dot"></span><span class="loader-dot"></span>
+        </span>
+      </button>
+    </form>
+  </div>
+</section>
+
+<!-- RESULTS -->
+<section id="resultsSection" hidden>
+  <div class="results-container" id="resultsContainer" style="max-width:900px;margin:0 auto;padding:60px 48px;"></div>
+</section>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <span class="logo-mark">⬡</span>
+    <span>CareerLens · Explainable AI Career Mentorship · Built with Flask + Python</span>
+  </div>
+</footer>
+
+<script>
+// ── Restore name from Step 1 ──────────────────────────────
+const name      = sessionStorage.getItem("cl_name")      || "there";
+const education = sessionStorage.getItem("cl_education") || "";
+document.getElementById("welcomeMsg").textContent =
+  `Hi ${name}! Based on your interests and favourite subjects, we will recommend the best career paths for you.`;
+
+// ── Form Submit ───────────────────────────────────────────
+const form    = document.getElementById("fresherForm");
+const errBox  = document.getElementById("formError");
+const btn     = document.getElementById("submitBtn");
+
+form.addEventListener("submit", async function(e) {
+  e.preventDefault();
+  errBox.hidden = true;
+
+  const interests = [...document.querySelectorAll('input[name="interests"]:checked')].map(el => el.value);
+  const subjects  = [...document.querySelectorAll('input[name="subjects"]:checked')].map(el => el.value);
+
+  if (interests.length === 0 && subjects.length === 0) {
+    errBox.textContent = "Please select at least one interest or subject.";
+    errBox.hidden = false;
+    return;
+  }
+
+  // Loading state
+  btn.disabled = true;
+  btn.querySelector(".btn-text").hidden = true;
+  btn.querySelector(".btn-arrow").hidden = true;
+  btn.querySelector(".btn-loader").hidden = false;
+
+  try {
+    const res  = await fetch("/recommend", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, education, interests, subjects }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Recommendation failed.");
+    renderResults(data);
+  } catch (err) {
+    errBox.textContent = err.message;
+    errBox.hidden = false;
+  } finally {
+    btn.disabled = false;
+    btn.querySelector(".btn-text").hidden = false;
+    btn.querySelector(".btn-arrow").hidden = false;
+    btn.querySelector(".btn-loader").hidden = true;
+  }
+});
+
+// ── Results Renderer ─────────────────────────────────────
+function renderResults(data) {
+  const section   = document.getElementById("resultsSection");
+  const container = document.getElementById("resultsContainer");
+
+  const recs = data.recommendations;
+
+  container.innerHTML = `
+    <div class="results-header results-animate">
+      <div>
+        <div class="results-greeting">Career recommendations for</div>
+        <h2 class="results-title">${esc(data.name)}</h2>
+        <p style="color:var(--text-3);font-size:14px;margin-top:6px;">
+          Based on interests: <strong style="color:var(--accent)">${data.interests.join(", ") || "—"}</strong>
+          &nbsp;·&nbsp; Subjects: <strong style="color:var(--accent-2)">${data.subjects.join(", ") || "—"}</strong>
+        </p>
+      </div>
+      <div style="font-size:48px">🌱</div>
+    </div>
+
+    <div class="rec-grid">
+      ${recs.map((r, i) => renderRecommendation(r, i + 1)).join("")}
+    </div>
+  `;
+
+  section.hidden = false;
+  section.scrollIntoView({ behavior: "smooth", block: "start" });
+
+  // Stagger roadmap steps
+  setTimeout(() => {
+    document.querySelectorAll(".roadmap-step").forEach((step, i) => {
+      setTimeout(() => step.classList.add("visible"), i * 60);
+    });
+  }, 300);
+}
+
+function renderRecommendation(rec, rank) {
+  return `
+    <div class="rec-card results-animate" style="animation-delay:${rank * 0.15}s">
+      <div class="rec-card-header">
+        <div class="rec-rank">#${rank}</div>
+        <span class="rec-icon">${esc(rec.icon)}</span>
+        <div>
+          <div class="rec-title">${esc(rec.career)}</div>
+          <div class="rec-desc">${esc(rec.description)}</div>
+        </div>
+      </div>
+
+      <!-- XAI: why this career was recommended -->
+      <div class="xai-panel open" style="margin-bottom:16px;">
+        <div class="xai-label">⬡ AI Recommendation Reason</div>
+        <p class="xai-reason">${esc(rec.match_reason)}</p>
+      </div>
+
+      <!-- Quick skill overview -->
+      <div style="margin-bottom:16px;">
+        <div class="section-title" style="font-size:20px;margin-bottom:10px;">
+          Skills to Learn <span class="tag tag-red">${rec.missing_skills.length} skills</span>
+        </div>
+        <div class="present-skills-list">
+          ${rec.missing_skills.slice(0, 5).map(s =>
+            `<span class="skill-chip" style="background:rgba(96,192,240,0.1);border-color:rgba(96,192,240,0.2);color:var(--accent-2);">${esc(s.name)}</span>`
+          ).join("")}
+          ${rec.missing_skills.length > 5 ? `<span class="skill-chip" style="color:var(--text-3);">+${rec.missing_skills.length - 5} more</span>` : ""}
+        </div>
+      </div>
+
+      <!-- Time estimate -->
+      <div class="total-time-banner" style="margin-bottom:20px;">
+        <div>
+          <div class="total-time-label">Estimated Time to Job-Ready</div>
+          <div class="total-time-note">studying ~10 hrs/week</div>
+        </div>
+        <div style="text-align:right">
+          <div class="total-time-value">${rec.total_weeks} weeks</div>
+          <div class="total-time-note">≈ ${Math.round(rec.total_weeks / 4)} months</div>
+        </div>
+      </div>
+
+      <!-- Roadmap (collapsed by default, toggled) -->
+      <button class="toggle-roadmap-btn" onclick="toggleRoadmap(this)" style="
+        background:none;border:1px solid var(--border);color:var(--text-2);
+        font-family:var(--font-mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;
+        padding:10px 20px;border-radius:6px;cursor:pointer;width:100%;margin-bottom:0;
+      ">Show Learning Roadmap (${rec.roadmap.length} steps) ▾</button>
+
+      <div class="roadmap-panel" hidden>
+        <div class="roadmap-timeline" style="margin-top:16px;">
+          ${rec.roadmap.map(step => renderStep(step)).join("")}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderStep(step) {
+  return `
+    <div class="roadmap-step ${esc(step.phase_key)}">
+      <div class="step-node">${step.step}</div>
+      <div class="step-card">
+        <div class="step-phase">${esc(step.phase)}</div>
+        <div class="step-skill">${esc(step.skill)}</div>
+        <div class="step-xai">${esc(step.xai_explanation)}</div>
+        <div class="step-meta">
+          <span class="step-weeks">⏱ ~${step.estimated_weeks} weeks</span>
+          <div class="step-resources">
+            ${step.resources.slice(0, 2).map(r => `<span class="step-resource">${esc(r)}</span>`).join("")}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function toggleRoadmap(btn) {
+  const panel = btn.nextElementSibling;
+  const hidden = panel.hidden;
+  panel.hidden = !hidden;
+  btn.textContent = hidden
+    ? `Hide Learning Roadmap ▴`
+    : `Show Learning Roadmap (${panel.querySelectorAll(".roadmap-step").length} steps) ▾`;
+  if (hidden) {
+    panel.querySelectorAll(".roadmap-step").forEach((s, i) => {
+      setTimeout(() => s.classList.add("visible"), i * 50);
+    });
+  }
+}
+
+function esc(str) {
+  if (typeof str !== "string") return String(str);
+  return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+            .replace(/"/g,"&quot;").replace(/'/g,"&#039;");
+}
+</script>
+</body>
+</html>
