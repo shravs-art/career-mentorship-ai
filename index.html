@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CareerLens — AI Career Mentorship</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
+</head>
+<body>
+
+<div class="noise"></div>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="logo">
+    <span class="logo-mark">⬡</span>
+    <span class="logo-text">CareerLens</span>
+  </div>
+  <nav class="header-nav">
+    <span class="nav-tag">AI-Powered</span>
+    <span class="nav-tag">Explainable</span>
+    <span class="nav-tag">Personalized</span>
+  </nav>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-grid-bg"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">Explainable AI · Skill Analysis · Personalized Paths</div>
+    <h1 class="hero-title">
+      Your career,<br/>
+      <em>mapped out</em><br/>
+      for <em>you.</em>
+    </h1>
+    <p class="hero-sub">Whether you are just starting out or switching careers, CareerLens gives you a personalized roadmap with clear explanations for every recommendation.</p>
+    <div class="hero-stats">
+      <div class="stat"><span class="stat-num">25</span><span class="stat-label">Career Paths</span></div>
+      <div class="stat"><span class="stat-num">150+</span><span class="stat-label">Skills Mapped</span></div>
+      <div class="stat"><span class="stat-num">100%</span><span class="stat-label">Explainable</span></div>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <div class="orbit-ring ring-1"></div>
+    <div class="orbit-ring ring-2"></div>
+    <div class="orbit-ring ring-3"></div>
+    <div class="center-node">⬡</div>
+    <div class="orbit-node node-a">🐍</div>
+    <div class="orbit-node node-b">📊</div>
+    <div class="orbit-node node-c">🤖</div>
+    <div class="orbit-node node-d">🔐</div>
+  </div>
+</section>
+
+<!-- STEP 1: PROFILE FORM -->
+<section class="form-section" id="profile">
+  <div class="form-container">
+    <div class="form-header">
+      <div class="form-step-label">Step 01 — Your Profile</div>
+      <h2 class="form-title">Tell Us About You</h2>
+      <p style="color:var(--text-3);font-size:14px;margin-top:8px;">Your answers shape the entire experience. Freshers get career recommendations; experienced professionals get a skill gap analysis.</p>
+    </div>
+
+    <form id="profileForm" class="mentor-form">
+
+      <!-- Name -->
+      <div class="field-group">
+        <label for="userName" class="field-label">
+          <span class="field-num">01</span> Your Name
+        </label>
+        <input type="text" id="userName" class="field-input"
+          placeholder="e.g. Arjun Sharma" autocomplete="off" required />
+      </div>
+
+      <!-- Education -->
+      <div class="field-group">
+        <label for="userEducation" class="field-label">
+          <span class="field-num">02</span> Education
+        </label>
+        <input type="text" id="userEducation" class="field-input"
+          placeholder="e.g. B.Tech Computer Science, B.Sc Mathematics..." autocomplete="off" required />
+      </div>
+
+      <!-- Experience Level -->
+      <div class="field-group">
+        <label class="field-label">
+          <span class="field-num">03</span> Experience Level
+        </label>
+        <div class="exp-toggle">
+          <label class="exp-card" id="fresherCard">
+            <input type="radio" name="experience" value="fresher" required />
+            <div class="exp-card-inner">
+              <span class="exp-icon">🌱</span>
+              <span class="exp-title">Fresher</span>
+              <span class="exp-desc">Student or recent graduate with no professional work experience</span>
+            </div>
+          </label>
+          <label class="exp-card" id="experiencedCard">
+            <input type="radio" name="experience" value="experienced" required />
+            <div class="exp-card-inner">
+              <span class="exp-icon">💼</span>
+              <span class="exp-title">Experienced</span>
+              <span class="exp-desc">Working professional looking to upskill or switch career paths</span>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div id="formError" class="form-error" hidden></div>
+
+      <button type="submit" class="submit-btn" id="submitBtn">
+        <span class="btn-text">Continue</span>
+        <span class="btn-arrow">→</span>
+      </button>
+
+    </form>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-inner">
+    <span class="logo-mark">⬡</span>
+    <span>CareerLens · Explainable AI Career Mentorship · Built with Flask + Python</span>
+  </div>
+</footer>
+
+<script>
+  const form = document.getElementById("profileForm");
+  const errBox = document.getElementById("formError");
+
+  form.addEventListener("submit", function(e) {
+    e.preventDefault();
+    errBox.hidden = true;
+
+    const name       = document.getElementById("userName").value.trim();
+    const education  = document.getElementById("userEducation").value.trim();
+    const experience = document.querySelector('input[name="experience"]:checked')?.value;
+
+    if (!name || !education || !experience) {
+      errBox.textContent = "Please fill in all fields and select your experience level.";
+      errBox.hidden = false;
+      return;
+    }
+
+    // Store in sessionStorage so next page can read it
+    sessionStorage.setItem("cl_name",       name);
+    sessionStorage.setItem("cl_education",  education);
+    sessionStorage.setItem("cl_experience", experience);
+
+    if (experience === "fresher") {
+      window.location.href = "/fresher";
+    } else {
+      window.location.href = "/experienced";
+    }
+  });
+</script>
+</body>
+</html>
