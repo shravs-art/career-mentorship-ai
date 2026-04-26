@@ -1,161 +1,720 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CareerLens — AI Career Mentorship</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>CareerLens — AI Career Mentorship</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#0a0a0f;--bg2:#111118;--bg3:#18181f;--surface:#1e1e28;
+  --border:#2a2a38;--border2:#3a3a50;
+  --text:#e8e8f0;--text2:#9090a8;--text3:#606075;
+  --accent:#c8f060;--accent2:#60c0f0;--accent3:#f0906a;
+  --critical:#ff6b6b;--important:#ffa94d;--advanced:#60c0f0;
+  --green:#69db7c;
+  --fd:'Bebas Neue',sans-serif;--fb:'DM Sans',sans-serif;--fm:'DM Mono',monospace;
+  --r:6px;--rl:12px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--fb);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;line-height:1.6}
+.noise{position:fixed;inset:0;pointer-events:none;z-index:999;opacity:.03;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:180px}
+
+/* HEADER */
+.site-header{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:18px 48px;background:rgba(10,10,15,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.logo{display:flex;align-items:center;gap:10px;cursor:pointer}
+.logo-mark{font-size:22px;color:var(--accent);animation:pulse 3s ease-in-out infinite}
+.logo-text{font-family:var(--fd);font-size:22px;letter-spacing:2px}
+.header-nav{display:flex;gap:8px}
+.nav-tag{font-family:var(--fm);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);padding:4px 10px;border:1px solid var(--border);border-radius:99px}
+.breadcrumb{display:flex;align-items:center;gap:8px;font-family:var(--fm);font-size:11px;letter-spacing:1px}
+.bc-done{color:var(--accent);text-decoration:line-through;text-decoration-color:rgba(200,240,96,.4)}
+.bc-active{color:var(--text);font-weight:500}
+.bc-todo{color:var(--text3)}
+.bc-sep{color:var(--border2)}
+
+/* PAGE SYSTEM */
+.page{display:none;min-height:100vh}
+.page.active{display:block}
+
+/* HERO */
+.hero{position:relative;min-height:100vh;display:grid;grid-template-columns:1fr 1fr;align-items:center;padding:120px 48px 80px;gap:60px;overflow:hidden}
+.hero-grid-bg{position:absolute;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:60px 60px;opacity:.3;mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 30%,transparent 100%)}
+.hero-eyebrow{font-family:var(--fm);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:24px;animation:fadeUp .6s .2s ease both}
+.hero-title{font-family:var(--fd);font-size:clamp(52px,7vw,90px);line-height:.95;letter-spacing:1px;margin-bottom:28px;animation:fadeUp .6s .4s ease both}
+.hero-title em{font-style:normal;color:var(--accent)}
+.hero-sub{font-size:16px;color:var(--text2);max-width:440px;line-height:1.7;margin-bottom:40px;animation:fadeUp .6s .6s ease both}
+.hero-stats{display:flex;gap:40px;animation:fadeUp .6s .8s ease both}
+.stat{display:flex;flex-direction:column}
+.stat-num{font-family:var(--fd);font-size:36px;color:var(--accent);line-height:1}
+.stat-label{font-family:var(--fm);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin-top:4px}
+.hero-cta{margin-top:40px;animation:fadeUp .6s 1s ease both}
+.hero-visual{position:relative;width:400px;height:400px;margin:0 auto;animation:fadeIn 1s 1s ease both}
+.orbit-ring{position:absolute;border-radius:50%;border:1px solid var(--border2);top:50%;left:50%;transform:translate(-50%,-50%)}
+.ring-1{width:160px;height:160px;border-color:var(--border);animation:spin 20s linear infinite}
+.ring-2{width:260px;height:260px;animation:spin 30s linear infinite reverse}
+.ring-3{width:360px;height:360px;animation:spin 45s linear infinite}
+.center-node{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:40px;color:var(--accent);animation:pulse 3s ease-in-out infinite;z-index:2}
+.orbit-node{position:absolute;font-size:24px;width:48px;height:48px;display:flex;align-items:center;justify-content:center;background:var(--surface);border:1px solid var(--border2);border-radius:50%;z-index:3}
+.node-a{top:10px;left:50%;transform:translateX(-50%)}
+.node-b{top:50%;right:10px;transform:translateY(-50%)}
+.node-c{bottom:10px;left:50%;transform:translateX(-50%)}
+.node-d{top:50%;left:10px;transform:translateY(-50%)}
+
+/* FORM SECTIONS */
+.form-section{padding:80px 48px;background:var(--bg2);border-top:1px solid var(--border)}
+.form-container{max-width:820px;margin:0 auto}
+.form-header{margin-bottom:48px}
+.form-step-label{font-family:var(--fm);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+.form-title{font-family:var(--fd);font-size:52px;letter-spacing:1px;line-height:1}
+.mentor-form{display:flex;flex-direction:column;gap:36px}
+.field-group{display:flex;flex-direction:column;gap:12px}
+.field-label{display:flex;align-items:center;gap:12px;font-size:13px;font-weight:500;letter-spacing:.5px;color:var(--text2);text-transform:uppercase}
+.field-num{font-family:var(--fd);font-size:28px;color:var(--border2);line-height:1}
+.field-hint{margin-left:auto;font-family:var(--fm);font-size:10px;letter-spacing:1px;color:var(--text3);font-weight:400;text-transform:none}
+.field-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:var(--fb);font-size:15px;padding:16px 20px;outline:none;transition:border-color .2s,box-shadow .2s;resize:none}
+.field-input::placeholder{color:var(--text3)}
+.field-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(200,240,96,.08)}
+.field-textarea{min-height:90px;line-height:1.6}
+.field-select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23606075' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 16px center;padding-right:40px;cursor:pointer}
+.field-select option{background:var(--bg2);color:var(--text)}
+
+/* EXP TOGGLE */
+.exp-toggle{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.exp-card input[type=radio]{display:none}
+.exp-card-inner{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:28px 20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);cursor:pointer;transition:all .2s}
+.exp-card-inner:hover{border-color:var(--border2);transform:translateY(-2px)}
+.exp-card input:checked+.exp-card-inner{border-color:var(--accent);background:rgba(200,240,96,.07);box-shadow:0 0 0 3px rgba(200,240,96,.08)}
+.exp-icon{font-size:36px}
+.exp-title{font-weight:600;font-size:16px;color:var(--text)}
+.exp-desc{font-size:12px;color:var(--text3);line-height:1.4}
+
+/* CHECKBOX GRID */
+.checkbox-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.check-card input[type=checkbox]{display:none}
+.check-inner{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;padding:20px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);cursor:pointer;transition:all .2s;font-size:13px;color:var(--text2)}
+.check-inner:hover{border-color:var(--border2);transform:translateY(-2px)}
+.check-card input:checked+.check-inner{border-color:var(--accent);background:rgba(200,240,96,.07);color:var(--text);box-shadow:0 0 0 3px rgba(200,240,96,.08)}
+.check-icon{font-size:28px}
+
+/* SKILL CHIPS */
+.skill-chips{display:flex;flex-wrap:wrap;gap:8px}
+.skill-chip{font-family:var(--fm);font-size:12px;padding:4px 12px;border-radius:99px;background:rgba(200,240,96,.1);border:1px solid rgba(200,240,96,.25);color:var(--accent);animation:chipPop .15s ease}
+
+/* SUBMIT BUTTON */
+.submit-btn{align-self:flex-start;display:flex;align-items:center;gap:12px;padding:16px 36px;background:var(--accent);color:#0a0a0f;font-family:var(--fd);font-size:20px;letter-spacing:2px;border:none;border-radius:var(--r);cursor:pointer;transition:all .2s;min-width:220px;justify-content:center}
+.submit-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(200,240,96,.25)}
+.submit-btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.btn-loader{display:flex;gap:4px;align-items:center}
+.loader-dot{width:6px;height:6px;border-radius:50%;background:#0a0a0f;animation:bounce .6s ease infinite}
+.loader-dot:nth-child(2){animation-delay:.15s}
+.loader-dot:nth-child(3){animation-delay:.3s}
+.form-error{padding:14px 20px;background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.25);border-radius:6px;color:#ff6b6b;font-size:14px;font-family:var(--fm)}
+
+/* RESULTS */
+.results-section{padding:80px 48px;background:var(--bg)}
+.results-container{max-width:900px;margin:0 auto}
+.results-header{display:grid;grid-template-columns:1fr auto;align-items:start;gap:24px;margin-bottom:48px;padding-bottom:40px;border-bottom:1px solid var(--border)}
+.results-greeting{font-family:var(--fm);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+.results-title{font-family:var(--fd);font-size:52px;letter-spacing:1px;line-height:1}
+.career-badge{display:flex;flex-direction:column;align-items:center;gap:4px;padding:20px 28px;background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);text-align:center}
+.career-badge-icon{font-size:36px}
+.career-badge-name{font-size:13px;font-weight:600}
+.score-panel{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:40px}
+.score-card{padding:24px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl)}
+.score-card-label{font-family:var(--fm);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin-bottom:8px}
+.score-card-value{font-family:var(--fd);font-size:44px;line-height:1}
+.score-card-value.green{color:var(--green)}.score-card-value.orange{color:var(--important)}.score-card-value.yellow{color:#ffe066}.score-card-value.red{color:var(--critical)}.score-card-value.accent{color:var(--accent)}
+.score-card-sub{font-size:12px;color:var(--text3);margin-top:4px}
+.progress-bar-wrap{margin-bottom:48px;padding:24px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl)}
+.progress-bar-label{display:flex;justify-content:space-between;font-family:var(--fm);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-bottom:12px}
+.progress-track{width:100%;height:8px;background:var(--border);border-radius:99px;overflow:hidden}
+.progress-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width 1.5s cubic-bezier(.4,0,.2,1);width:0}
+.section-title{font-family:var(--fd);font-size:32px;letter-spacing:1px;margin-bottom:16px;display:flex;align-items:center;gap:12px}
+.tag{font-family:var(--fm);font-size:11px;letter-spacing:1px;padding:3px 10px;border-radius:99px;font-style:normal}
+.tag-green{background:rgba(105,219,124,.12);color:var(--green);border:1px solid rgba(105,219,124,.2)}
+.tag-red{background:rgba(255,107,107,.12);color:var(--critical);border:1px solid rgba(255,107,107,.2)}
+.tag-blue{background:rgba(96,192,240,.12);color:var(--accent2);border:1px solid rgba(96,192,240,.2)}
+.present-skills-list{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:40px}
+.present-chip{font-family:var(--fm);font-size:13px;padding:8px 16px;background:rgba(105,219,124,.08);border:1px solid rgba(105,219,124,.2);color:var(--green);border-radius:99px;display:flex;align-items:center;gap:6px}
+.present-chip::before{content:'✓';font-size:11px}
+.missing-skills-list{display:flex;flex-direction:column;gap:12px;margin-bottom:48px}
+.missing-skill-card{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:16px;padding:20px 24px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);transition:border-color .2s,transform .2s;cursor:pointer}
+.missing-skill-card:hover{border-color:var(--border2);transform:translateX(4px)}
+.missing-skill-card.expanded{border-color:var(--accent)}
+.priority-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.priority-dot.critical{background:var(--critical);box-shadow:0 0 8px var(--critical)}
+.priority-dot.important{background:var(--important)}
+.priority-dot.advanced{background:var(--advanced)}
+.missing-skill-name{font-weight:600;font-size:15px}
+.missing-skill-priority{font-family:var(--fm);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--text3)}
+.missing-skill-weeks{font-family:var(--fm);font-size:12px;color:var(--text3);white-space:nowrap}
+.xai-panel{display:none;grid-column:1/-1;margin-top:4px;padding:16px 20px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);border-left:3px solid var(--accent)}
+.xai-panel.open{display:block}
+.xai-label{font-family:var(--fm);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+.xai-reason{font-size:14px;color:var(--text2);line-height:1.6;margin-bottom:12px}
+.xai-resources-label{font-family:var(--fm);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-bottom:8px}
+.xai-resources{display:flex;flex-wrap:wrap;gap:8px}
+.xai-resource{font-family:var(--fm);font-size:11px;padding:4px 12px;background:var(--surface);border:1px solid var(--border);border-radius:99px;color:var(--text2)}
+
+/* ROADMAP */
+.roadmap-section{margin-bottom:60px}
+.roadmap-timeline{position:relative;padding-left:60px}
+.roadmap-timeline::before{content:'';position:absolute;left:20px;top:0;bottom:0;width:1px;background:linear-gradient(180deg,var(--accent),var(--accent2),transparent)}
+.roadmap-step{position:relative;margin-bottom:24px;opacity:0;transform:translateX(-10px);transition:all .4s ease}
+.roadmap-step.visible{opacity:1;transform:translateX(0)}
+.step-node{position:absolute;left:-48px;top:16px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:14px;border-radius:50%;background:var(--bg2);border:1px solid var(--border2);color:var(--text2)}
+.roadmap-step.critical .step-node{background:rgba(255,107,107,.1);border-color:var(--critical);color:var(--critical)}
+.roadmap-step.important .step-node{background:rgba(255,169,77,.1);border-color:var(--important);color:var(--important)}
+.roadmap-step.advanced .step-node{background:rgba(96,192,240,.1);border-color:var(--advanced);color:var(--advanced)}
+.step-card{padding:20px 24px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);transition:border-color .2s}
+.step-card:hover{border-color:var(--border2)}
+.step-phase{font-family:var(--fm);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin-bottom:6px}
+.step-skill{font-weight:600;font-size:16px;margin-bottom:6px}
+.step-xai{font-size:13px;color:var(--text3);font-style:italic;margin-bottom:12px;padding:8px 12px;border-left:2px solid var(--accent);background:rgba(200,240,96,.04)}
+.step-meta{display:flex;gap:12px;align-items:center}
+.step-weeks{font-family:var(--fm);font-size:11px;color:var(--text3)}
+.step-resources{display:flex;gap:6px;flex-wrap:wrap}
+.step-resource{font-family:var(--fm);font-size:10px;padding:2px 8px;background:var(--surface);border:1px solid var(--border);border-radius:99px;color:var(--text3)}
+.total-time-banner{margin-top:32px;padding:24px 32px;background:linear-gradient(135deg,rgba(200,240,96,.08),rgba(96,192,240,.08));border:1px solid rgba(200,240,96,.2);border-radius:var(--rl);display:flex;align-items:center;justify-content:space-between}
+.total-time-label{font-family:var(--fm);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3)}
+.total-time-value{font-family:var(--fd);font-size:40px;color:var(--accent);line-height:1}
+.total-time-note{font-size:12px;color:var(--text3)}
+.all-present-banner{padding:32px;text-align:center;background:rgba(105,219,124,.05);border:1px solid rgba(105,219,124,.2);border-radius:var(--rl)}
+.all-present-icon{font-size:48px;margin-bottom:12px}
+.all-present-title{font-family:var(--fd);font-size:32px;color:var(--green);margin-bottom:8px}
+
+/* REC CARDS */
+.rec-grid{display:flex;flex-direction:column;gap:32px;margin-top:40px}
+.rec-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:28px;transition:border-color .2s}
+.rec-card:hover{border-color:var(--border2)}
+.rec-card-header{display:flex;align-items:flex-start;gap:16px;margin-bottom:20px}
+.rec-rank{font-family:var(--fd);font-size:40px;color:var(--border2);line-height:1;flex-shrink:0;min-width:48px}
+.rec-icon{font-size:36px;flex-shrink:0}
+.rec-title{font-weight:600;font-size:20px;margin-bottom:4px}
+.rec-desc{font-size:13px;color:var(--text3);line-height:1.4}
+.match-meter-wrap{margin:16px 0 4px}
+.match-meter-label{display:flex;justify-content:space-between;font-family:var(--fm);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin-bottom:8px}
+.match-meter-label strong{color:var(--accent);font-size:13px}
+.match-track{width:100%;height:10px;background:var(--border);border-radius:99px;overflow:hidden}
+.match-fill{height:100%;border-radius:99px;transition:width 1.2s cubic-bezier(.4,0,.2,1);width:0}
+.match-fill.high{background:linear-gradient(90deg,var(--accent),#a8e840)}
+.match-fill.mid{background:linear-gradient(90deg,var(--important),#ffd43b)}
+.match-fill.low{background:linear-gradient(90deg,var(--critical),var(--important))}
+.score-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:99px;font-family:var(--fm);font-size:11px;font-weight:500;margin-bottom:12px}
+.score-badge.high{background:rgba(200,240,96,.12);border:1px solid rgba(200,240,96,.3);color:var(--accent)}
+.score-badge.mid{background:rgba(255,169,77,.12);border:1px solid rgba(255,169,77,.3);color:var(--important)}
+.score-badge.low{background:rgba(255,107,107,.12);border:1px solid rgba(255,107,107,.3);color:var(--critical)}
+.toggle-roadmap-btn{background:none;border:1px solid var(--border);color:var(--text2);font-family:var(--fm);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:10px 20px;border-radius:6px;cursor:pointer;width:100%;transition:border-color .2s}
+.toggle-roadmap-btn:hover{border-color:var(--border2)}
+
+/* FOOTER */
+.site-footer{padding:24px 48px;border-top:1px solid var(--border);background:var(--bg)}
+.footer-inner{display:flex;align-items:center;gap:12px;font-family:var(--fm);font-size:11px;letter-spacing:1px;color:var(--text3)}
+
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes spin{from{transform:translate(-50%,-50%) rotate(0)}to{transform:translate(-50%,-50%) rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1;text-shadow:0 0 20px rgba(200,240,96,.5)}50%{opacity:.7;text-shadow:0 0 40px rgba(200,240,96,.8)}}
+@keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-4px)}}
+@keyframes chipPop{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes resultsIn{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+.results-animate{animation:resultsIn .5s ease forwards}
+
+@media(max-width:900px){
+  .hero{grid-template-columns:1fr;padding:100px 24px 60px}
+  .hero-visual{display:none}
+  .form-section,.results-section{padding:60px 24px}
+  .site-header{padding:16px 24px}
+  .score-panel{grid-template-columns:1fr}
+  .results-header{grid-template-columns:1fr}
+  .exp-toggle{grid-template-columns:1fr}
+}
+@media(max-width:500px){
+  .checkbox-grid{grid-template-columns:1fr 1fr}
+  .hero-stats{gap:24px}
+}
+</style>
 </head>
 <body>
-
 <div class="noise"></div>
 
 <!-- HEADER -->
-<header class="site-header">
-  <div class="logo">
-    <span class="logo-mark">⬡</span>
+<header class="site-header" id="siteHeader">
+  <div class="logo" onclick="goHome()">
+    <span class="logo-mark">&#x2B21;</span>
     <span class="logo-text">CareerLens</span>
   </div>
-  <nav class="header-nav">
+  <nav class="header-nav" id="headerNav">
     <span class="nav-tag">AI-Powered</span>
     <span class="nav-tag">Explainable</span>
     <span class="nav-tag">Personalized</span>
   </nav>
 </header>
 
-<!-- HERO -->
-<section class="hero">
-  <div class="hero-grid-bg"></div>
-  <div class="hero-content">
-    <div class="hero-eyebrow">Explainable AI · Skill Analysis · Personalized Paths</div>
-    <h1 class="hero-title">
-      Your career,<br/>
-      <em>mapped out</em><br/>
-      for <em>you.</em>
-    </h1>
-    <p class="hero-sub">Whether you are just starting out or switching careers, CareerLens gives you a personalized roadmap with clear explanations for every recommendation.</p>
-    <div class="hero-stats">
-      <div class="stat"><span class="stat-num">25</span><span class="stat-label">Career Paths</span></div>
-      <div class="stat"><span class="stat-num">150+</span><span class="stat-label">Skills Mapped</span></div>
-      <div class="stat"><span class="stat-num">100%</span><span class="stat-label">Explainable</span></div>
-    </div>
-  </div>
-  <div class="hero-visual">
-    <div class="orbit-ring ring-1"></div>
-    <div class="orbit-ring ring-2"></div>
-    <div class="orbit-ring ring-3"></div>
-    <div class="center-node">⬡</div>
-    <div class="orbit-node node-a">🐍</div>
-    <div class="orbit-node node-b">📊</div>
-    <div class="orbit-node node-c">🤖</div>
-    <div class="orbit-node node-d">🔐</div>
-  </div>
-</section>
+<!-- ══════════════════════════════════════════
+     PAGE 1: HOME / PROFILE
+     ══════════════════════════════════════════ -->
+<div class="page active" id="page-home">
 
-<!-- STEP 1: PROFILE FORM -->
-<section class="form-section" id="profile">
-  <div class="form-container">
-    <div class="form-header">
-      <div class="form-step-label">Step 01 — Your Profile</div>
-      <h2 class="form-title">Tell Us About You</h2>
-      <p style="color:var(--text-3);font-size:14px;margin-top:8px;">Your answers shape the entire experience. Freshers get career recommendations; experienced professionals get a skill gap analysis.</p>
-    </div>
-
-    <form id="profileForm" class="mentor-form">
-
-      <!-- Name -->
-      <div class="field-group">
-        <label for="userName" class="field-label">
-          <span class="field-num">01</span> Your Name
-        </label>
-        <input type="text" id="userName" class="field-input"
-          placeholder="e.g. Arjun Sharma" autocomplete="off" required />
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-grid-bg"></div>
+    <div class="hero-content">
+      <div class="hero-eyebrow">Explainable AI · Skill Analysis · Personalized Paths</div>
+      <h1 class="hero-title">Your career,<br/><em>mapped out</em><br/>for <em>you.</em></h1>
+      <p class="hero-sub">Whether you are just starting out or switching careers, CareerLens gives you a personalized roadmap with clear explanations for every recommendation.</p>
+      <div class="hero-stats">
+        <div class="stat"><span class="stat-num">25</span><span class="stat-label">Career Paths</span></div>
+        <div class="stat"><span class="stat-num">150+</span><span class="stat-label">Skills Mapped</span></div>
+        <div class="stat"><span class="stat-num">100%</span><span class="stat-label">Explainable</span></div>
       </div>
-
-      <!-- Education -->
-      <div class="field-group">
-        <label for="userEducation" class="field-label">
-          <span class="field-num">02</span> Education
-        </label>
-        <input type="text" id="userEducation" class="field-input"
-          placeholder="e.g. B.Tech Computer Science, B.Sc Mathematics..." autocomplete="off" required />
+      <div class="hero-cta">
+        <button class="submit-btn" onclick="document.getElementById('profile-form').scrollIntoView({behavior:'smooth'})">
+          Get Started <span style="margin-left:4px">&#8594;</span>
+        </button>
       </div>
+    </div>
+    <div class="hero-visual">
+      <div class="orbit-ring ring-1"></div>
+      <div class="orbit-ring ring-2"></div>
+      <div class="orbit-ring ring-3"></div>
+      <div class="center-node">&#x2B21;</div>
+      <div class="orbit-node node-a">&#x1F40D;</div>
+      <div class="orbit-node node-b">&#x1F4CA;</div>
+      <div class="orbit-node node-c">&#x1F916;</div>
+      <div class="orbit-node node-d">&#x1F510;</div>
+    </div>
+  </section>
 
-      <!-- Experience Level -->
-      <div class="field-group">
-        <label class="field-label">
-          <span class="field-num">03</span> Experience Level
-        </label>
-        <div class="exp-toggle">
-          <label class="exp-card" id="fresherCard">
-            <input type="radio" name="experience" value="fresher" required />
-            <div class="exp-card-inner">
-              <span class="exp-icon">🌱</span>
-              <span class="exp-title">Fresher</span>
-              <span class="exp-desc">Student or recent graduate with no professional work experience</span>
-            </div>
-          </label>
-          <label class="exp-card" id="experiencedCard">
-            <input type="radio" name="experience" value="experienced" required />
-            <div class="exp-card-inner">
-              <span class="exp-icon">💼</span>
-              <span class="exp-title">Experienced</span>
-              <span class="exp-desc">Working professional looking to upskill or switch career paths</span>
-            </div>
-          </label>
+  <!-- PROFILE FORM -->
+  <section class="form-section" id="profile-form">
+    <div class="form-container">
+      <div class="form-header">
+        <div class="form-step-label">Step 01 — Your Profile</div>
+        <h2 class="form-title">Tell Us About You</h2>
+      </div>
+      <form class="mentor-form" onsubmit="submitProfile(event)">
+        <div class="field-group">
+          <label class="field-label"><span class="field-num">01</span>Your Name</label>
+          <input type="text" id="p-name" class="field-input" placeholder="e.g. Arjun Sharma" required/>
         </div>
+        <div class="field-group">
+          <label class="field-label"><span class="field-num">02</span>Education</label>
+          <input type="text" id="p-education" class="field-input" placeholder="e.g. B.Tech Computer Science, B.Sc Mathematics..." required/>
+        </div>
+        <div class="field-group">
+          <label class="field-label"><span class="field-num">03</span>Experience Level</label>
+          <div class="exp-toggle">
+            <label class="exp-card">
+              <input type="radio" name="exp" value="fresher" required/>
+              <div class="exp-card-inner">
+                <span class="exp-icon">&#x1F331;</span>
+                <span class="exp-title">Fresher</span>
+                <span class="exp-desc">Student or recent graduate with no professional experience</span>
+              </div>
+            </label>
+            <label class="exp-card">
+              <input type="radio" name="exp" value="experienced"/>
+              <div class="exp-card-inner">
+                <span class="exp-icon">&#x1F4BC;</span>
+                <span class="exp-title">Experienced</span>
+                <span class="exp-desc">Working professional looking to upskill or switch careers</span>
+              </div>
+            </label>
+          </div>
+        </div>
+        <div id="profile-error" class="form-error" hidden></div>
+        <button type="submit" class="submit-btn">Continue <span>&#8594;</span></button>
+      </form>
+    </div>
+  </section>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PAGE 2A: FRESHER
+     ══════════════════════════════════════════ -->
+<div class="page" id="page-fresher">
+  <section class="form-section" style="padding-top:100px">
+    <div class="form-container">
+      <div class="form-header">
+        <div class="form-step-label">Step 02 — Fresher Path &#x1F331;</div>
+        <h2 class="form-title">What Excites You?</h2>
+        <p id="fresher-welcome" style="color:var(--text2);font-size:15px;margin-top:8px"></p>
       </div>
+      <form class="mentor-form" onsubmit="submitFresher(event)">
+        <div class="field-group">
+          <label class="field-label"><span class="field-num">01</span>Areas of Interest<span class="field-hint">select all that apply</span></label>
+          <div class="checkbox-grid">
+            <label class="check-card"><input type="checkbox" name="interest" value="Web Development"/><div class="check-inner"><span class="check-icon">&#x1F310;</span><span>Web Development</span></div></label>
+            <label class="check-card"><input type="checkbox" name="interest" value="AI/ML"/><div class="check-inner"><span class="check-icon">&#x1F916;</span><span>AI / Machine Learning</span></div></label>
+            <label class="check-card"><input type="checkbox" name="interest" value="Data Analysis"/><div class="check-inner"><span class="check-icon">&#x1F4CA;</span><span>Data Analysis</span></div></label>
+            <label class="check-card"><input type="checkbox" name="interest" value="UI Design"/><div class="check-inner"><span class="check-icon">&#x1F3A8;</span><span>UI / UX Design</span></div></label>
+            <label class="check-card"><input type="checkbox" name="interest" value="Problem Solving"/><div class="check-inner"><span class="check-icon">&#x1F9E9;</span><span>Problem Solving</span></div></label>
+          </div>
+        </div>
+        <div class="field-group">
+          <label class="field-label"><span class="field-num">02</span>Favourite Subjects<span class="field-hint">select all that apply</span></label>
+          <div class="checkbox-grid">
+            <label class="check-card"><input type="checkbox" name="subject" value="Mathematics"/><div class="check-inner"><span class="check-icon">&#x1F4D0;</span><span>Mathematics</span></div></label>
+            <label class="check-card"><input type="checkbox" name="subject" value="Programming"/><div class="check-inner"><span class="check-icon">&#x1F4BB;</span><span>Programming</span></div></label>
+            <label class="check-card"><input type="checkbox" name="subject" value="Statistics"/><div class="check-inner"><span class="check-icon">&#x1F4C8;</span><span>Statistics</span></div></label>
+            <label class="check-card"><input type="checkbox" name="subject" value="Design"/><div class="check-inner"><span class="check-icon">&#x270F;&#xFE0F;</span><span>Design</span></div></label>
+          </div>
+        </div>
+        <div id="fresher-error" class="form-error" hidden></div>
+        <button type="submit" class="submit-btn" id="fresher-btn">
+          <span class="btn-text">Find My Career Path</span>
+          <span class="btn-arrow">&#8594;</span>
+          <span class="btn-loader" hidden><span class="loader-dot"></span><span class="loader-dot"></span><span class="loader-dot"></span></span>
+        </button>
+      </form>
+    </div>
+  </section>
+  <section class="results-section" id="fresher-results" hidden>
+    <div class="results-container" id="fresher-results-container"></div>
+  </section>
+</div>
 
-      <div id="formError" class="form-error" hidden></div>
-
-      <button type="submit" class="submit-btn" id="submitBtn">
-        <span class="btn-text">Continue</span>
-        <span class="btn-arrow">→</span>
-      </button>
-
-    </form>
-  </div>
-</section>
+<!-- ══════════════════════════════════════════
+     PAGE 2B: EXPERIENCED
+     ══════════════════════════════════════════ -->
+<div class="page" id="page-experienced">
+  <section class="form-section" style="padding-top:100px">
+    <div class="form-container">
+      <div class="form-header">
+        <div class="form-step-label">Step 02 — Experienced Path &#x1F4BC;</div>
+        <h2 class="form-title">Analyze Your Skill Gap</h2>
+        <p id="exp-welcome" style="color:var(--text2);font-size:15px;margin-top:8px"></p>
+      </div>
+      <form class="mentor-form" onsubmit="submitExperienced(event)">
+        <div class="field-group">
+          <label class="field-label"><span class="field-num">01</span>Current Role <span class="field-hint">optional</span></label>
+          <input type="text" id="e-current" class="field-input" placeholder="e.g. Web Developer, Data Analyst..."/>
+        </div>
+        <div class="field-group">
+          <label class="field-label"><span class="field-num">02</span>Target Career</label>
+          <select id="e-career" class="field-input field-select" required>
+            <option value="" disabled selected>— Select your target career —</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label"><span class="field-num">03</span>Current Skills<span class="field-hint">comma-separated</span></label>
+          <textarea id="e-skills" class="field-input field-textarea" placeholder="e.g. Python, SQL, JavaScript, React, Git..." rows="3" required></textarea>
+          <div class="skill-chips" id="e-skill-chips"></div>
+        </div>
+        <div id="exp-error" class="form-error" hidden></div>
+        <button type="submit" class="submit-btn" id="exp-btn">
+          <span class="btn-text">Analyze My Skill Gap</span>
+          <span class="btn-arrow">&#8594;</span>
+          <span class="btn-loader" hidden><span class="loader-dot"></span><span class="loader-dot"></span><span class="loader-dot"></span></span>
+        </button>
+      </form>
+    </div>
+  </section>
+  <section class="results-section" id="exp-results" hidden>
+    <div class="results-container" id="exp-results-container"></div>
+  </section>
+</div>
 
 <!-- FOOTER -->
 <footer class="site-footer">
   <div class="footer-inner">
-    <span class="logo-mark">⬡</span>
-    <span>CareerLens · Explainable AI Career Mentorship · Built with Flask + Python</span>
+    <span class="logo-mark">&#x2B21;</span>
+    <span>CareerLens &middot; Explainable AI Career Mentorship &middot; 25 Careers &middot; 150+ Skills</span>
   </div>
 </footer>
 
 <script>
-  const form = document.getElementById("profileForm");
-  const errBox = document.getElementById("formError");
+// ══════════════════════════════════════════════════════════
+// CAREER DATABASE (all logic runs in the browser)
+// ══════════════════════════════════════════════════════════
+const CAREERS = {"Software Developer":{"icon":"💻","description":"Design, build, and maintain software applications across platforms.","required_skills":{"Programming Fundamentals":{"priority":"critical","reason":"Core programming concepts like variables, loops, functions, and OOP are the foundation every software developer builds upon regardless of language or domain.","resources":["CS50 (Harvard Free Course)","Python.org Tutorial","The Odin Project"],"estimated_weeks":6},"Data Structures & Algorithms":{"priority":"critical","reason":"DSA is tested in every technical interview and is essential for writing efficient, scalable software. Without it, you cannot pass hiring assessments at top companies.","resources":["LeetCode","GeeksforGeeks DSA","Cracking the Coding Interview (book)"],"estimated_weeks":8},"Git & Version Control":{"priority":"critical","reason":"Git is used by every professional software team. Without it, you cannot collaborate on code, track changes, or contribute to any real-world project.","resources":["Git Official Book (free)","GitHub Learning Lab","Atlassian Git Tutorial"],"estimated_weeks":2},"Object-Oriented Programming":{"priority":"important","reason":"OOP principles (classes, inheritance, encapsulation, polymorphism) are the foundation of most large-scale software systems and frameworks.","resources":["OOP in Python (Real Python)","Java OOP (MOOC.fi)","Head First Design Patterns (book)"],"estimated_weeks":4},"Databases":{"priority":"important","reason":"Almost every application stores and retrieves data. Understanding SQL and basic database design is a must-have skill for any developer.","resources":["SQLBolt","PostgreSQL Tutorial","MongoDB University"],"estimated_weeks":4},"Software Design Patterns":{"priority":"important","reason":"Design patterns are reusable solutions to common software problems. They help you write maintainable, scalable code and communicate better with your team.","resources":["Refactoring.Guru","Design Patterns (GoF book)","Head First Design Patterns"],"estimated_weeks":4},"Testing & Debugging":{"priority":"advanced","reason":"Writing unit tests and debugging skills separate junior developers from seniors. Professional codebases require tested, reliable code.","resources":["pytest Documentation","Test-Driven Development (book)","Debugging in VS Code"],"estimated_weeks":3}}},"Software Engineer":{"icon":"⚙️","description":"Apply engineering principles to design robust, scalable software systems.","required_skills":{"Data Structures & Algorithms":{"priority":"critical","reason":"Software engineering interviews at top companies are DSA-heavy. Beyond interviews, efficient algorithms are essential for systems that scale to millions of users.","resources":["LeetCode","NeetCode.io","Cracking the Coding Interview"],"estimated_weeks":10},"System Design":{"priority":"critical","reason":"Software engineers are expected to design large-scale distributed systems. System design skills differentiate mid-level from senior engineers.","resources":["System Design Primer (GitHub)","Designing Data-Intensive Applications (book)","ByteByteGo"],"estimated_weeks":8},"Programming (Python/Java/C++)":{"priority":"critical","reason":"Deep proficiency in at least one language is required. Software engineers must write production-quality, performant code, not just working code.","resources":["Effective Java (book)","Fluent Python (book)","C++ Primer (book)"],"estimated_weeks":8},"Operating Systems":{"priority":"important","reason":"Understanding processes, threads, memory management, and file systems is essential for writing performant software and debugging hard issues.","resources":["Operating Systems: Three Easy Pieces (free)","MIT 6.828","OSTEP Book"],"estimated_weeks":6},"Networking Fundamentals":{"priority":"important","reason":"Modern software runs over networks. Understanding TCP/IP, HTTP, DNS, and sockets is required for building distributed systems and APIs.","resources":["Computer Networking: A Top-Down Approach","Beej's Guide to Networking","CS144 Stanford"],"estimated_weeks":5},"Databases & SQL":{"priority":"important","reason":"Every software system persists data. Deep knowledge of relational databases, indexing, and query optimization is core to engineering roles.","resources":["PostgreSQL Documentation","Use The Index, Luke!","Database Internals (book)"],"estimated_weeks":4},"Cloud & Deployment":{"priority":"advanced","reason":"Modern software is deployed to cloud infrastructure. Understanding AWS/GCP/Azure, containers, and CI/CD pipelines is increasingly expected.","resources":["AWS Free Tier + Tutorials","Docker Getting Started","The DevOps Handbook"],"estimated_weeks":5}}},"Backend Developer":{"icon":"🖥️","description":"Build and maintain server-side logic, APIs, and database systems.","required_skills":{"Server-Side Language (Python/Node/Java)":{"priority":"critical","reason":"Backend development requires deep proficiency in a server-side language. Python (Django/Flask), Node.js (Express), or Java (Spring) are the most in-demand.","resources":["Django Official Tutorial","Node.js Official Docs","Spring Boot Guide"],"estimated_weeks":8},"REST API Design":{"priority":"critical","reason":"Backend developers spend most of their time building and maintaining REST APIs. Understanding HTTP methods, status codes, and API design best practices is essential.","resources":["REST API Tutorial","Postman Learning Center","API Design Patterns (book)"],"estimated_weeks":4},"Databases & SQL":{"priority":"critical","reason":"The backend is the bridge between the application and the database. Deep SQL knowledge and database design skills are non-negotiable.","resources":["PostgreSQL Tutorial","SQLZoo","Database Design for Mere Mortals (book)"],"estimated_weeks":5},"Authentication & Security":{"priority":"important","reason":"Backend developers are responsible for securing APIs with JWT, OAuth, password hashing, and preventing SQL injection and XSS attacks.","resources":["OWASP Top 10","Auth0 Documentation","Web Security Academy (PortSwigger)"],"estimated_weeks":4},"Caching (Redis)":{"priority":"important","reason":"Caching with Redis dramatically improves application performance by reducing database load. It is a standard tool in production backend systems.","resources":["Redis Official Documentation","Redis University (free)","Caching Strategies Guide"],"estimated_weeks":2},"Message Queues":{"priority":"important","reason":"RabbitMQ, Kafka, and Celery are used for async task processing and decoupling services in scalable backend architectures.","resources":["RabbitMQ Tutorials","Apache Kafka Documentation","Celery Documentation"],"estimated_weeks":3},"Docker & Deployment":{"priority":"advanced","reason":"Backend services are containerized and deployed via Docker. Understanding containers and basic CI/CD is expected in modern backend roles.","resources":["Docker Official Get Started","GitHub Actions Documentation","DigitalOcean Tutorials"],"estimated_weeks":4}}},"Frontend Developer":{"icon":"🎨","description":"Build beautiful, responsive user interfaces and web experiences.","required_skills":{"HTML":{"priority":"critical","reason":"HTML is the skeleton of every web page. Semantic HTML is critical for accessibility, SEO, and building well-structured interfaces.","resources":["MDN HTML Guide","freeCodeCamp HTML","The Odin Project"],"estimated_weeks":2},"CSS":{"priority":"critical","reason":"CSS controls all visual presentation. Mastery of Flexbox, Grid, animations, and responsive design is the core skill of frontend development.","resources":["CSS Tricks","Kevin Powell YouTube","Josh Comeau CSS Course"],"estimated_weeks":4},"JavaScript":{"priority":"critical","reason":"JavaScript is the only language that runs natively in browsers. Deep JS knowledge including DOM, events, async, and closures is the foundation of all frontend work.","resources":["javascript.info","Eloquent JavaScript (free)","freeCodeCamp JavaScript"],"estimated_weeks":8},"React or Vue":{"priority":"critical","reason":"Modern frontend development is component-based. React is the most in-demand framework and virtually every frontend job listing requires it.","resources":["React Official Docs","Scrimba React Course","Vue Official Tutorial"],"estimated_weeks":6},"TypeScript":{"priority":"important","reason":"TypeScript is now standard in professional frontend codebases. It catches bugs at compile time and makes large codebases maintainable.","resources":["TypeScript Official Handbook","Total TypeScript (Matt Pocock)","Execute Program"],"estimated_weeks":4},"CSS Frameworks (Tailwind)":{"priority":"important","reason":"Tailwind CSS is the most popular utility-first CSS framework, dramatically speeding up UI development and used widely in production apps.","resources":["Tailwind CSS Docs","Tailwind UI","Scrimba Tailwind Course"],"estimated_weeks":2},"Web Performance":{"priority":"advanced","reason":"Optimizing load times, Core Web Vitals, and rendering performance directly impacts user experience and SEO rankings.","resources":["web.dev Performance","Lighthouse Documentation","Frontend Performance Checklist"],"estimated_weeks":3}}},"Full Stack Developer":{"icon":"🔄","description":"Build complete web applications handling both frontend and backend.","required_skills":{"HTML, CSS & JavaScript":{"priority":"critical","reason":"Full stack development starts with solid frontend fundamentals. You cannot build complete web apps without mastering the core web technologies.","resources":["The Odin Project","freeCodeCamp","MDN Web Docs"],"estimated_weeks":8},"React (Frontend Framework)":{"priority":"critical","reason":"React is the most widely used frontend framework. Full stack developers are expected to build dynamic UIs with React in most modern web stacks.","resources":["React Official Docs","Scrimba React Course","Full Stack Open (Helsinki)"],"estimated_weeks":6},"Node.js & Express":{"priority":"critical","reason":"Node.js allows JavaScript on the backend, enabling true full stack development in one language. Express is the most popular Node.js framework.","resources":["Node.js Official Docs","Express.js Guide","Full Stack Open (Helsinki)"],"estimated_weeks":5},"Databases (SQL & NoSQL)":{"priority":"critical","reason":"Full stack developers must handle data storage on both relational (PostgreSQL) and NoSQL (MongoDB) databases depending on project needs.","resources":["PostgreSQL Tutorial","MongoDB University","Prisma Documentation"],"estimated_weeks":5},"REST APIs & GraphQL":{"priority":"important","reason":"Full stack developers build the APIs their own frontends consume. REST and GraphQL are the two dominant API paradigms in modern web development.","resources":["REST API Tutorial","GraphQL Official Docs","Apollo GraphQL Tutorial"],"estimated_weeks":4},"Git & Deployment":{"priority":"important","reason":"Full stack developers are expected to deploy their own apps. Git for version control and platforms like Vercel or AWS for deployment are essential.","resources":["GitHub Learning Lab","Vercel Documentation","DigitalOcean App Platform"],"estimated_weeks":3},"Docker & CI/CD":{"priority":"advanced","reason":"Containerizing full stack apps with Docker and automating deployments with CI/CD pipelines is the professional standard for shipping software.","resources":["Docker Official Docs","GitHub Actions","Railway.app Tutorials"],"estimated_weeks":4}}},"Application Developer":{"icon":"📦","description":"Build desktop and cross-platform applications for end users.","required_skills":{"Programming Language (Python/Java/C#)":{"priority":"critical","reason":"Application development requires strong proficiency in a language suited to the target platform. Python for tools, Java for cross-platform, C# for Windows.","resources":["Python Official Tutorial","Java MOOC (Helsinki)","Microsoft C# Documentation"],"estimated_weeks":8},"GUI Frameworks":{"priority":"critical","reason":"Desktop apps require GUI frameworks like Tkinter, JavaFX, or Electron to build user interfaces that run outside the browser.","resources":["Tkinter Documentation","JavaFX Tutorial","Electron Official Docs"],"estimated_weeks":5},"Object-Oriented Programming":{"priority":"critical","reason":"Application development is heavily OOP-based. Classes, inheritance, and design patterns are central to building maintainable desktop software.","resources":["Real Python OOP","Java OOP MOOC","Head First Design Patterns"],"estimated_weeks":5},"File I/O & Data Storage":{"priority":"important","reason":"Applications need to read and write files, manage local storage, and often use embedded databases like SQLite for persistence.","resources":["Python File I/O Docs","SQLite Tutorial","LevelDB Guides"],"estimated_weeks":3},"Software Testing":{"priority":"important","reason":"Application bugs affect end users directly. Unit testing, integration testing, and UI testing ensure application reliability.","resources":["pytest Docs","JUnit 5 Guide","Selenium Documentation"],"estimated_weeks":3},"Packaging & Distribution":{"priority":"advanced","reason":"Shipping desktop apps requires packaging them into installers using PyInstaller, NSIS, or MSI. Understanding app distribution pipelines is essential.","resources":["PyInstaller Docs","Electron Builder","NSIS Documentation"],"estimated_weeks":2}}},"Web Developer":{"icon":"🌐","description":"Build responsive, interactive websites and web applications.","required_skills":{"HTML":{"priority":"critical","reason":"HTML is the skeleton of every web page. Without it, no web content can be structured or displayed in a browser.","resources":["MDN HTML Guide","freeCodeCamp HTML Course","The Odin Project"],"estimated_weeks":2},"CSS":{"priority":"critical","reason":"CSS controls visual presentation. Modern CSS with Flexbox and Grid is essential for responsive, beautiful layouts.","resources":["CSS Tricks","Kevin Powell YouTube","freeCodeCamp CSS Course"],"estimated_weeks":3},"JavaScript":{"priority":"critical","reason":"JavaScript is the only language that runs natively in browsers, making it essential for interactive web experiences.","resources":["javascript.info","Eloquent JavaScript (free book)","freeCodeCamp JavaScript"],"estimated_weeks":8},"React":{"priority":"important","reason":"React is the most in-demand frontend framework. It enables building reusable UI components and managing complex app state.","resources":["React Official Docs","Scrimba React Course","The Odin Project React"],"estimated_weeks":6},"Git":{"priority":"important","reason":"Version control with Git is non-negotiable in professional development. Every team uses it for collaboration and code management.","resources":["Git Official Book (free)","GitHub Learning Lab","Atlassian Git Tutorial"],"estimated_weeks":2},"Node.js":{"priority":"important","reason":"Node.js allows JavaScript on the server side, enabling full-stack development with a single language.","resources":["Node.js Official Docs","The Odin Project NodeJS","NodeJS Course (Udemy)"],"estimated_weeks":5},"Databases":{"priority":"important","reason":"Web apps need to store and retrieve data. Understanding SQL (PostgreSQL) and NoSQL (MongoDB) databases is essential.","resources":["PostgreSQL Tutorial","MongoDB University","SQLBolt"],"estimated_weeks":4},"TypeScript":{"priority":"advanced","reason":"TypeScript adds static typing to JavaScript, reducing bugs and improving code maintainability in large codebases.","resources":["TypeScript Official Handbook","Total TypeScript (Matt Pocock)","Execute Program"],"estimated_weeks":4}}},"Mobile App Developer":{"icon":"📱","description":"Build native and cross-platform mobile applications for iOS and Android.","required_skills":{"JavaScript":{"priority":"critical","reason":"JavaScript powers React Native, the most popular cross-platform mobile framework, enabling one codebase for iOS and Android.","resources":["javascript.info","React Native Official Docs","Expo Documentation"],"estimated_weeks":8},"React Native":{"priority":"critical","reason":"React Native lets you build truly native mobile apps with JavaScript, dramatically reducing development time vs building separate iOS/Android apps.","resources":["React Native Official Docs","Expo Documentation","React Native School"],"estimated_weeks":8},"Mobile UI/UX Design":{"priority":"critical","reason":"Mobile interfaces have unique constraints including touch targets, screen sizes, and gestures. Understanding platform-specific design guidelines is essential.","resources":["Google Material Design","Apple Human Interface Guidelines","Figma Mobile Design Course"],"estimated_weeks":4},"REST APIs":{"priority":"important","reason":"Mobile apps rarely work in isolation. They consume REST APIs to fetch data, authenticate users, and sync information.","resources":["REST API Tutorial","Postman Learning Center","HTTP Crash Course (YouTube)"],"estimated_weeks":3},"App Store Deployment":{"priority":"important","reason":"Understanding the App Store and Google Play submission processes, certificates, and policies is required to ship apps to users.","resources":["Apple Developer Documentation","Google Play Console Help","Expo EAS Build Guide"],"estimated_weeks":2},"Swift or Kotlin":{"priority":"advanced","reason":"Native languages deliver the best performance and deepest platform integration for complex mobile apps requiring platform-specific features.","resources":["Swift Playgrounds (Apple)","100 Days of SwiftUI","Android Kotlin Fundamentals"],"estimated_weeks":10}}},"Game Developer":{"icon":"🎮","description":"Design and build interactive video games for PC, console, or mobile.","required_skills":{"C# or C++":{"priority":"critical","reason":"C# is the primary language for Unity (the most popular game engine), and C++ is used in Unreal Engine. One of these is required for professional game development.","resources":["Unity Learn (free)","C# Player's Guide (book)","Unreal Online Learning"],"estimated_weeks":8},"Game Engine (Unity/Unreal)":{"priority":"critical","reason":"Modern games are built in game engines. Unity dominates mobile and indie games while Unreal dominates AAA. Deep engine knowledge is the core skill.","resources":["Unity Learn Platform","Unreal Online Learning","Brackeys YouTube (Unity)"],"estimated_weeks":10},"Linear Algebra & Math":{"priority":"critical","reason":"Game development relies heavily on vectors, matrices, and trigonometry for 3D transformations, physics, camera systems, and collision detection.","resources":["3Blue1Brown Linear Algebra","Math for Game Developers (YouTube)","Khan Academy"],"estimated_weeks":6},"Game Physics":{"priority":"important","reason":"Realistic movement, collision, gravity, and rigid body dynamics require understanding of game physics systems like PhysX and Box2D.","resources":["Game Physics Cookbook (book)","Unity Physics Documentation","Godot Physics Docs"],"estimated_weeks":4},"3D Modeling Basics":{"priority":"important","reason":"Game developers need to understand 3D asset pipelines including meshes, textures, and UV mapping even if they do not create all assets themselves.","resources":["Blender Official Tutorials","CG Cookie","Blender Guru YouTube"],"estimated_weeks":5},"Shader Programming":{"priority":"advanced","reason":"Custom shaders written in HLSL/GLSL control how surfaces are rendered and are essential for achieving high-quality visual effects.","resources":["The Book of Shaders (free)","Unity Shader Graph","Shadertoy"],"estimated_weeks":6}}},"Data Scientist":{"icon":"📊","description":"Analyze complex data to extract insights and build predictive models.","required_skills":{"Python":{"priority":"critical","reason":"Python is the primary language for data science. Libraries like pandas, NumPy, and scikit-learn are Python-native and used in virtually every data science workflow.","resources":["Python.org Official Tutorial","Automate the Boring Stuff with Python","Kaggle Python Course"],"estimated_weeks":6},"Statistics":{"priority":"critical","reason":"Statistical thinking is foundational to data science, from hypothesis testing to understanding model performance metrics.","resources":["Khan Academy Statistics","Statistics for Data Science (Coursera)","Think Stats (free book)"],"estimated_weeks":4},"Machine Learning":{"priority":"critical","reason":"Machine learning is the core skill of data science, building models that learn patterns from data to make predictions.","resources":["Andrew Ng's ML Course (Coursera)","Hands-On ML with Scikit-Learn (book)","fast.ai"],"estimated_weeks":8},"SQL":{"priority":"important","reason":"Most real-world data lives in relational databases. SQL is essential for extracting, filtering, and aggregating data before analysis.","resources":["SQLZoo","Mode Analytics SQL Tutorial","LeetCode SQL Problems"],"estimated_weeks":3},"Data Visualization":{"priority":"important","reason":"Communicating findings visually is key. Tools like Matplotlib, Seaborn, and Tableau help turn numbers into actionable insights.","resources":["Matplotlib Documentation","Seaborn Tutorial","Tableau Public Free Training"],"estimated_weeks":3},"Pandas & NumPy":{"priority":"important","reason":"Pandas and NumPy are the go-to libraries for data manipulation and numerical computing in Python, used in every data science project.","resources":["Pandas Official Documentation","Kaggle Pandas Course","NumPy Official Tutorial"],"estimated_weeks":3},"Deep Learning":{"priority":"advanced","reason":"Deep learning enables complex tasks like image recognition and NLP. It is increasingly expected for senior data science roles.","resources":["Deep Learning Specialization (Coursera)","PyTorch Tutorials","fast.ai Part 2"],"estimated_weeks":10}}},"Machine Learning Engineer":{"icon":"🧠","description":"Build, train, and deploy machine learning models at production scale.","required_skills":{"Python":{"priority":"critical","reason":"Python is the dominant language for ML engineering. PyTorch, TensorFlow, and scikit-learn are all Python-first frameworks.","resources":["Python Official Docs","Real Python","CS50P (Harvard)"],"estimated_weeks":6},"Machine Learning Algorithms":{"priority":"critical","reason":"Deep understanding of supervised, unsupervised, and reinforcement learning algorithms is the core knowledge of an ML engineer.","resources":["Andrew Ng ML Specialization","Elements of Statistical Learning (free)","Scikit-learn User Guide"],"estimated_weeks":10},"Deep Learning & Neural Networks":{"priority":"critical","reason":"Neural networks including CNNs, RNNs, and Transformers power modern ML systems. PyTorch or TensorFlow proficiency is required.","resources":["Deep Learning Specialization (Coursera)","PyTorch Official Tutorials","fast.ai"],"estimated_weeks":10},"MLOps & Model Deployment":{"priority":"important","reason":"ML engineers are responsible for deploying models to production using tools like MLflow, Docker, and REST APIs, not just training models in notebooks.","resources":["MLflow Documentation","Full Stack Deep Learning","Weights & Biases Courses"],"estimated_weeks":6},"Feature Engineering":{"priority":"important","reason":"The quality of features fed into a model often matters more than the algorithm. Feature engineering is the most impactful skill for improving model accuracy.","resources":["Feature Engineering for ML (book)","Kaggle Feature Engineering Course","Feast Documentation"],"estimated_weeks":4},"Mathematics (Linear Algebra, Calculus)":{"priority":"important","reason":"Understanding gradient descent, backpropagation, and matrix operations requires linear algebra and calculus knowledge.","resources":["3Blue1Brown Linear Algebra","3Blue1Brown Calculus","Mathematics for ML (Coursera)"],"estimated_weeks":6},"Cloud ML Platforms":{"priority":"advanced","reason":"Production ML runs on cloud platforms. AWS SageMaker, GCP Vertex AI, and Azure ML are used for training and serving models at scale.","resources":["AWS SageMaker Docs","GCP Vertex AI Quickstart","Azure ML Documentation"],"estimated_weeks":5}}},"AI Engineer":{"icon":"🤖","description":"Design, build, and deploy AI systems and intelligent applications.","required_skills":{"Python":{"priority":"critical","reason":"Python is the dominant language in AI/ML. Virtually all AI frameworks including TensorFlow, PyTorch, and LangChain are Python-first.","resources":["Python.org Official Tutorial","Real Python","CS50P (Harvard)"],"estimated_weeks":6},"Machine Learning":{"priority":"critical","reason":"Understanding ML fundamentals is the foundation everything else in AI engineering builds upon.","resources":["Andrew Ng's ML Specialization","Scikit-learn docs","Kaggle Courses"],"estimated_weeks":8},"Deep Learning":{"priority":"critical","reason":"Modern AI is built on deep learning. Neural networks, transformers, and CNNs are now core engineering knowledge.","resources":["Deep Learning Specialization (Coursera)","PyTorch Official Tutorials","Papers With Code"],"estimated_weeks":10},"Large Language Models":{"priority":"critical","reason":"LLMs are transforming the industry. AI Engineers must know how to fine-tune, prompt engineer, and deploy them using LangChain or similar tools.","resources":["Hugging Face Course","LangChain Documentation","Building LLM Apps (DeepLearning.AI)"],"estimated_weeks":8},"MLOps":{"priority":"important","reason":"Deploying AI models to production requires MLOps including CI/CD for ML, model monitoring, versioning, and serving infrastructure.","resources":["MLflow Documentation","Full Stack Deep Learning","Weights & Biases Courses"],"estimated_weeks":6},"Cloud Platforms":{"priority":"important","reason":"AI at scale requires cloud infrastructure. AWS SageMaker, GCP Vertex AI, and Azure ML are where production AI lives.","resources":["AWS ML Specialty Cert","GCP Professional ML Engineer","Azure AI Fundamentals"],"estimated_weeks":5},"Mathematics":{"priority":"important","reason":"Linear algebra, calculus, and probability theory underpin all AI algorithms.","resources":["3Blue1Brown Linear Algebra","Mathematics for ML (Coursera)","Khan Academy Calculus"],"estimated_weeks":6}}},"NLP Engineer":{"icon":"💬","description":"Build systems that understand, process, and generate human language.","required_skills":{"Python":{"priority":"critical","reason":"Python is the standard language for NLP. All major NLP libraries including NLTK, spaCy, and Hugging Face Transformers are Python-native.","resources":["Python Official Docs","Real Python","CS50P Harvard"],"estimated_weeks":6},"Linguistics & Text Processing":{"priority":"critical","reason":"Understanding tokenization, stemming, lemmatization, POS tagging, and syntactic parsing is the foundation of all NLP work.","resources":["NLTK Book (free online)","spaCy Documentation","Speech and Language Processing (Jurafsky - free)"],"estimated_weeks":5},"Transformer Models (BERT, GPT)":{"priority":"critical","reason":"Transformers are the dominant architecture in modern NLP. BERT for understanding tasks and GPT for generation are used in virtually every production NLP system.","resources":["Hugging Face Course (free)","Attention Is All You Need (paper)","Illustrated Transformer (blog)"],"estimated_weeks":8},"Machine Learning":{"priority":"important","reason":"NLP models are ML models. Understanding classification, sequence labeling, and generative modeling is required for NLP engineering.","resources":["Andrew Ng ML Course","fast.ai NLP Course","Scikit-learn Documentation"],"estimated_weeks":6},"Deep Learning (PyTorch/TensorFlow)":{"priority":"important","reason":"Modern NLP uses neural networks. PyTorch is the preferred framework for NLP research and production systems.","resources":["PyTorch Official Tutorials","Deep Learning Specialization","fast.ai"],"estimated_weeks":8},"Vector Databases & Embeddings":{"priority":"important","reason":"Semantic search, RAG systems, and recommendation engines use text embeddings stored in vector databases like Pinecone and Weaviate.","resources":["Pinecone Learning Center","Weaviate Documentation","OpenAI Embeddings Guide"],"estimated_weeks":3},"LLM Fine-tuning & Prompt Engineering":{"priority":"advanced","reason":"Production NLP systems now involve fine-tuning LLMs on domain data and advanced prompt engineering for optimal outputs.","resources":["Hugging Face Fine-tuning Guide","DeepLearning.AI Prompt Engineering","LoRA Paper & Implementations"],"estimated_weeks":6}}},"Computer Vision Engineer":{"icon":"👁️","description":"Build systems that analyze, understand, and process visual data.","required_skills":{"Python":{"priority":"critical","reason":"Python is the primary language for computer vision. OpenCV, PyTorch, and TensorFlow, the core CV tools, are all Python-native.","resources":["Python Official Docs","Real Python","CS50P Harvard"],"estimated_weeks":6},"Deep Learning (CNNs)":{"priority":"critical","reason":"Convolutional Neural Networks are the backbone of modern computer vision. Image classification, detection, and segmentation all use CNNs.","resources":["CS231n Stanford (free)","Deep Learning Specialization (Coursera)","fast.ai Vision"],"estimated_weeks":10},"OpenCV":{"priority":"critical","reason":"OpenCV is the most widely used computer vision library. It is used for image preprocessing, feature detection, and real-time video processing.","resources":["OpenCV Official Documentation","OpenCV Python Tutorials","PyImageSearch Blog"],"estimated_weeks":4},"Object Detection Frameworks":{"priority":"important","reason":"YOLO, Faster R-CNN, and DETR are industry-standard object detection frameworks used in robotics, surveillance, and autonomous systems.","resources":["YOLOv8 Documentation","Detectron2 (Meta)","Roboflow Tutorials"],"estimated_weeks":6},"Image Segmentation":{"priority":"important","reason":"Semantic and instance segmentation is essential for medical imaging, autonomous driving, and industrial computer vision applications.","resources":["Segment Anything (Meta)","U-Net Paper & Implementation","Hugging Face Segmentation"],"estimated_weeks":5},"Mathematics (Linear Algebra)":{"priority":"important","reason":"Image transformations, convolutions, and 3D geometry rely on linear algebra. It is required to understand how CV algorithms work.","resources":["3Blue1Brown Linear Algebra","Multiple View Geometry (book)","Khan Academy"],"estimated_weeks":5},"Edge Deployment (TensorRT/ONNX)":{"priority":"advanced","reason":"CV models deployed on cameras, robots, and mobile devices require model optimization with TensorRT or ONNX for real-time inference.","resources":["TensorRT Documentation","ONNX Official Docs","OpenVINO Toolkit"],"estimated_weeks":5}}},"DevOps Engineer":{"icon":"🔧","description":"Automate and streamline software delivery, infrastructure, and operations.","required_skills":{"Linux & Shell Scripting":{"priority":"critical","reason":"DevOps engineers manage Linux servers and automate tasks with Bash scripts. Linux proficiency is the most fundamental skill in DevOps.","resources":["The Linux Command Line (free book)","Bash Scripting Tutorial","Linux Journey"],"estimated_weeks":5},"Docker & Containers":{"priority":"critical","reason":"Containerization with Docker is the foundation of modern DevOps. Every application is containerized for consistency across environments.","resources":["Docker Official Get Started","Play with Docker","Docker Deep Dive (Nigel Poulton)"],"estimated_weeks":4},"Kubernetes":{"priority":"critical","reason":"Kubernetes is the industry standard for orchestrating containers at scale. It is required for virtually every senior DevOps role.","resources":["Kubernetes Official Tutorial","KodeKloud Kubernetes Course","Certified Kubernetes Administrator (CKA)"],"estimated_weeks":8},"CI/CD Pipelines":{"priority":"critical","reason":"DevOps engineers design and maintain CI/CD pipelines using GitHub Actions, Jenkins, or GitLab CI to automate testing and deployment.","resources":["GitHub Actions Documentation","Jenkins Official Docs","GitLab CI/CD Tutorial"],"estimated_weeks":4},"Infrastructure as Code (Terraform)":{"priority":"important","reason":"IaC tools like Terraform allow infrastructure to be version-controlled and reproducible, a key DevOps principle.","resources":["Terraform Official Tutorials","HashiCorp Learn","Terraform Up & Running (book)"],"estimated_weeks":5},"Cloud Platforms (AWS/GCP/Azure)":{"priority":"important","reason":"DevOps engineers manage cloud infrastructure. AWS is the most in-demand, but knowledge of any major cloud platform is essential.","resources":["AWS Free Tier Tutorials","Google Cloud Skills Boost","Azure Fundamentals"],"estimated_weeks":6},"Monitoring & Observability":{"priority":"advanced","reason":"Production systems require monitoring with Prometheus, Grafana, and ELK stack to detect issues before they impact users.","resources":["Prometheus Documentation","Grafana Tutorials","Elastic Stack Guide"],"estimated_weeks":4}}},"Cloud Engineer":{"icon":"☁️","description":"Design and manage scalable cloud infrastructure and services.","required_skills":{"Cloud Platforms (AWS/GCP/Azure)":{"priority":"critical","reason":"Cloud engineers live and breathe cloud platforms. Deep knowledge of at least one major cloud provider is the core requirement for this role.","resources":["AWS Solutions Architect Associate","Google Cloud Digital Leader","Azure Administrator (AZ-104)"],"estimated_weeks":10},"Networking (VPC, DNS, Load Balancing)":{"priority":"critical","reason":"Cloud infrastructure is fundamentally network-based. Understanding VPCs, subnets, security groups, and load balancers is essential.","resources":["AWS Networking Fundamentals","Cloud Networking Course (A Cloud Guru)","Networking for Cloud Engineers"],"estimated_weeks":6},"Infrastructure as Code (Terraform/CDK)":{"priority":"critical","reason":"Cloud engineers provision infrastructure programmatically using Terraform or AWS CDK, not manually through consoles.","resources":["Terraform Official Tutorials","AWS CDK Workshop","Pulumi Documentation"],"estimated_weeks":5},"Linux & Scripting":{"priority":"important","reason":"Cloud instances run Linux. Shell scripting and Linux administration are needed for automation and server management.","resources":["Linux Command Line (free book)","Bash Scripting Tutorial","AWS Systems Manager"],"estimated_weeks":4},"Containers & Kubernetes":{"priority":"important","reason":"Modern cloud workloads run in containers. EKS, GKE, and AKS are managed Kubernetes services used on every major cloud platform.","resources":["Docker Official Docs","Kubernetes Official Tutorial","EKS Workshop"],"estimated_weeks":6},"Cloud Security":{"priority":"important","reason":"IAM, encryption, security groups, and compliance frameworks like SOC2 and HIPAA are critical responsibilities of cloud engineers.","resources":["AWS Security Specialty","Cloud Security Alliance","IAM Best Practices (AWS)"],"estimated_weeks":5},"Cost Optimization":{"priority":"advanced","reason":"Cloud costs can spiral out of control. Cloud engineers optimize spending using reserved instances, auto-scaling, and right-sizing.","resources":["AWS Cost Explorer","FinOps Foundation","Cloud Cost Optimization Guide"],"estimated_weeks":3}}},"Site Reliability Engineer":{"icon":"🛡️","description":"Ensure system reliability, scalability, and performance at production scale.","required_skills":{"Linux & Systems Administration":{"priority":"critical","reason":"SREs manage complex production Linux systems. Deep OS-level knowledge of processes, memory, file systems, and networking is foundational.","resources":["Linux Performance (Brendan Gregg)","The Linux Command Line (free)","UNIX and Linux System Administration Handbook"],"estimated_weeks":6},"Programming (Python/Go)":{"priority":"critical","reason":"SREs write automation, tooling, and services. Python and Go are the dominant languages, Go for performance and Python for scripting.","resources":["Go Official Tour","Real Python","SRE Workbook (Google, free)"],"estimated_weeks":7},"Monitoring & Observability":{"priority":"critical","reason":"SREs define SLIs and SLOs and monitor them. Prometheus, Grafana, Datadog, and distributed tracing are core SRE tools.","resources":["Prometheus Documentation","Grafana Labs Tutorials","Honeycomb Observability Guide"],"estimated_weeks":5},"Incident Management":{"priority":"critical","reason":"SREs own production incidents. Understanding incident response, postmortems, and on-call management is central to the SRE role.","resources":["Google SRE Book (free online)","PagerDuty Incident Management","Site Reliability Engineering (O'Reilly)"],"estimated_weeks":4},"Kubernetes & Cloud":{"priority":"important","reason":"Production systems run on cloud infrastructure. SREs manage Kubernetes clusters, auto-scaling, and cloud resources for reliability.","resources":["Kubernetes Official Docs","AWS/GCP Free Tier","CKA Certification"],"estimated_weeks":7},"Chaos Engineering":{"priority":"advanced","reason":"SREs proactively test system resilience using chaos engineering, intentionally injecting failures to find weaknesses before they cause outages.","resources":["Chaos Monkey (Netflix)","Gremlin Documentation","Principles of Chaos Engineering"],"estimated_weeks":4}}},"Embedded Systems Developer":{"icon":"🔌","description":"Program microcontrollers and hardware systems with low-level code.","required_skills":{"C & C++":{"priority":"critical","reason":"C is the primary language of embedded systems. Direct hardware access, memory management, and real-time constraints require C/C++, not higher-level languages.","resources":["C Programming Language (K&R book)","Embedded C Programming (Udemy)","cppreference.com"],"estimated_weeks":8},"Microcontroller Programming":{"priority":"critical","reason":"Embedded developers program microcontrollers like Arduino, STM32, and ESP32. Understanding registers, interrupts, and timers is essential.","resources":["Arduino Official Tutorials","STM32 Getting Started","Embedded Systems Shape The World (UT Austin - free)"],"estimated_weeks":8},"Electronics & Circuit Design":{"priority":"critical","reason":"Embedded developers interface software with hardware. Understanding circuits, GPIO, I2C, SPI, and UART protocols is fundamental.","resources":["Sparkfun Electronics Tutorials","All About Circuits (free)","EEVblog YouTube"],"estimated_weeks":6},"Real-Time Operating Systems (RTOS)":{"priority":"important","reason":"Many embedded systems require deterministic timing. FreeRTOS and Zephyr are used in safety-critical and real-time applications.","resources":["FreeRTOS Official Documentation","Zephyr RTOS Docs","Mastering the FreeRTOS Kernel (free)"],"estimated_weeks":6},"Debugging & Testing (JTAG/GDB)":{"priority":"important","reason":"Debugging embedded systems requires hardware debuggers (JTAG/SWD) and tools like GDB. Bugs in embedded systems can cause physical failures.","resources":["OpenOCD Documentation","GDB User Manual","Lauterbach TRACE32"],"estimated_weeks":4},"Linux Kernel & Device Drivers":{"priority":"advanced","reason":"Embedded Linux requires knowledge of kernel modules, device trees, and writing Linux device drivers for platforms like Raspberry Pi and Yocto.","resources":["Linux Device Drivers (free book)","Yocto Project Documentation","Bootlin Embedded Linux Training"],"estimated_weeks":8}}},"Cybersecurity Engineer":{"icon":"🔐","description":"Protect systems and networks from digital threats and attacks.","required_skills":{"Networking Fundamentals":{"priority":"critical","reason":"Understanding TCP/IP, DNS, HTTP, and network protocols is the foundation of cybersecurity because attacks happen over networks.","resources":["CompTIA Network+ Study Guide","Professor Messer Networking","Cisco Networking Academy"],"estimated_weeks":6},"Linux":{"priority":"critical","reason":"Most servers and security tools run on Linux. Command-line proficiency and system administration are essential.","resources":["The Linux Command Line (free book)","OverTheWire Wargames","TryHackMe Linux Paths"],"estimated_weeks":5},"Python":{"priority":"critical","reason":"Python is used for scripting security tools, automating tasks, building exploits, and parsing logs in security workflows.","resources":["Black Hat Python (book)","Automate the Boring Stuff","TryHackMe Python Path"],"estimated_weeks":5},"Ethical Hacking & Penetration Testing":{"priority":"important","reason":"Penetration testing teaches you to think like an attacker, which is essential for identifying vulnerabilities before malicious actors do.","resources":["CEH (Certified Ethical Hacker)","HackTheBox","TryHackMe"],"estimated_weeks":10},"Cryptography":{"priority":"important","reason":"Encryption, hashing, and PKI are the backbone of secure communications. You must understand how and why they work.","resources":["Cryptography I (Coursera - Stanford)","Practical Cryptography for Devs","CryptoPals Challenges"],"estimated_weeks":5},"SIEM & Incident Response":{"priority":"important","reason":"Security engineers use SIEM tools like Splunk and IBM QRadar for threat detection, log analysis, and incident response.","resources":["Splunk Free Training","IBM QRadar Tutorials","Elastic SIEM Guide"],"estimated_weeks":4},"Cloud Security":{"priority":"advanced","reason":"As organizations move to cloud, securing AWS/Azure/GCP environments is a rapidly growing and high-demand specialization.","resources":["AWS Security Specialty","CCSP Certification","Cloud Security Alliance Resources"],"estimated_weeks":6}}},"Ethical Hacker":{"icon":"🕵️","description":"Legally test and break into systems to find vulnerabilities before attackers do.","required_skills":{"Networking & Protocols":{"priority":"critical","reason":"Ethical hackers must deeply understand how networks work including TCP/IP, DNS, ARP, and HTTP to identify and exploit network-level vulnerabilities.","resources":["CompTIA Network+","Wireshark Official Docs","Cisco Networking Academy"],"estimated_weeks":6},"Linux & Command Line":{"priority":"critical","reason":"Ethical hacking tools like Kali Linux, Metasploit, and Nmap run on Linux. Deep CLI skills are non-negotiable.","resources":["Kali Linux Documentation","OverTheWire Wargames","TryHackMe Linux Fundamentals"],"estimated_weeks":5},"Penetration Testing Methodology":{"priority":"critical","reason":"Ethical hackers follow structured methodologies like PTES and OWASP for reconnaissance, scanning, exploitation, and reporting.","resources":["PTES Standard","OWASP Testing Guide","Penetration Testing (Georgia Weidman book)"],"estimated_weeks":8},"Web Application Hacking":{"priority":"critical","reason":"Web apps are the most common attack surface. Understanding SQL injection, XSS, CSRF, and IDOR is required for any ethical hacking role.","resources":["PortSwigger Web Security Academy (free)","OWASP Top 10","BurpSuite Documentation"],"estimated_weeks":8},"Exploit Development":{"priority":"important","reason":"Writing and modifying exploits requires understanding buffer overflows, shellcode, and memory corruption, the technical core of offensive security.","resources":["Exploit Development (TryHackMe)","pwn.college (free)","The Shellcoder's Handbook"],"estimated_weeks":8},"Scripting (Python/Bash)":{"priority":"important","reason":"Ethical hackers write custom scripts to automate reconnaissance, modify existing exploits, and process large amounts of output data.","resources":["Black Hat Python (book)","Violent Python (book)","Python for Pentesters"],"estimated_weeks":4},"Certifications (CEH/OSCP)":{"priority":"advanced","reason":"The OSCP (Offensive Security Certified Professional) is the gold standard ethical hacking certification and is required by many employers.","resources":["Offensive Security PWK Course","CEH Official Study Guide","eJPT (eLearnSecurity)"],"estimated_weeks":12}}},"Software Tester / QA Automation Engineer":{"icon":"🧪","description":"Ensure software quality through manual and automated testing strategies.","required_skills":{"Testing Fundamentals":{"priority":"critical","reason":"Understanding the software testing lifecycle including unit, integration, system, and acceptance testing along with TDD and BDD methodologies is foundational.","resources":["ISTQB Foundation Syllabus","Software Testing Help (blog)","The Art of Software Testing (book)"],"estimated_weeks":4},"Test Automation (Selenium/Playwright)":{"priority":"critical","reason":"QA automation engineers write scripts to automate test cases. Selenium and Playwright are the most widely used UI automation frameworks.","resources":["Selenium Official Documentation","Playwright Official Docs","Test Automation University (free)"],"estimated_weeks":6},"Programming (Python/Java)":{"priority":"critical","reason":"Writing automated test scripts requires programming skills. Python and Java are the most common languages used in QA automation frameworks.","resources":["Python Official Tutorial","Java MOOC (Helsinki)","Automation in Testing YouTube"],"estimated_weeks":6},"API Testing":{"priority":"important","reason":"Modern apps are API-driven. Testing APIs with Postman and REST Assured is a core QA skill alongside UI testing.","resources":["Postman Learning Center","REST Assured Documentation","Swagger/OpenAPI Testing"],"estimated_weeks":3},"CI/CD Integration":{"priority":"important","reason":"QA engineers integrate automated test suites into CI/CD pipelines so tests run automatically on every code change.","resources":["GitHub Actions Documentation","Jenkins Official Docs","Test Automation in CI/CD Guide"],"estimated_weeks":3},"Performance Testing":{"priority":"important","reason":"Load testing with JMeter or k6 ensures applications handle production traffic levels without degrading performance.","resources":["Apache JMeter Docs","k6 Documentation","Gatling Official Docs"],"estimated_weeks":3},"Test Management Tools":{"priority":"advanced","reason":"Tools like Jira, TestRail, and Zephyr are used to plan, track, and report on test coverage and defect management in professional teams.","resources":["Jira Software Documentation","TestRail Documentation","Zephyr Scale Guide"],"estimated_weeks":2}}},"Blockchain Developer":{"icon":"⛓️","description":"Build decentralized applications and smart contracts on blockchain platforms.","required_skills":{"Blockchain Fundamentals":{"priority":"critical","reason":"Understanding consensus mechanisms, distributed ledgers, cryptographic hashing, and the difference between blockchains is prerequisite knowledge.","resources":["Bitcoin Whitepaper (Satoshi)","Ethereum.org Learn","Blockchain Basics (Coursera)"],"estimated_weeks":4},"Solidity & Smart Contracts":{"priority":"critical","reason":"Solidity is the primary language for writing Ethereum smart contracts. It is the core technical skill for most blockchain developer roles.","resources":["CryptoZombies (interactive Solidity course)","Solidity Official Docs","Hardhat Documentation"],"estimated_weeks":8},"JavaScript/TypeScript":{"priority":"critical","reason":"Blockchain frontends and testing scripts are written in JS/TS. Libraries like Ethers.js and Web3.js are JavaScript-based.","resources":["javascript.info","Ethers.js Documentation","Web3.js Documentation"],"estimated_weeks":7},"Web3 Development (Ethers.js/Hardhat)":{"priority":"important","reason":"Web3 tooling connects frontend applications to the blockchain. Hardhat for testing/deployment and Ethers.js for interaction are industry standards.","resources":["Hardhat Official Documentation","Alchemy Web3 University (free)","Patrick Collins YouTube"],"estimated_weeks":5},"DeFi & Tokenomics":{"priority":"important","reason":"Understanding DeFi protocols, ERC standards (ERC-20, ERC-721), and tokenomics is essential for building real-world blockchain applications.","resources":["DeFi Developer Roadmap","OpenZeppelin Contracts","Uniswap Documentation"],"estimated_weeks":4},"Cryptography":{"priority":"important","reason":"Blockchain security relies on public-key cryptography, digital signatures, and hash functions. Understanding these is critical for secure contract development.","resources":["Cryptography I (Coursera)","Practical Cryptography for Devs","Hash Function Guide"],"estimated_weeks":4},"Smart Contract Security":{"priority":"advanced","reason":"Smart contract bugs are irreversible and can result in millions lost. Auditing for reentrancy, overflow, and access control vulnerabilities is a senior skill.","resources":["Damn Vulnerable DeFi","OpenZeppelin Security Blog","Smart Contract Auditor Roadmap"],"estimated_weeks":6}}},"AR/VR Developer":{"icon":"🥽","description":"Build augmented and virtual reality experiences for headsets and mobile devices.","required_skills":{"Unity or Unreal Engine":{"priority":"critical","reason":"Unity is the dominant platform for AR/VR development, supporting Meta Quest, HoloLens, and mobile AR. Unreal is used for high-fidelity VR experiences.","resources":["Unity XR Development Docs","Unreal VR Development Guide","Unity Learn XR"],"estimated_weeks":10},"C# or C++":{"priority":"critical","reason":"Unity uses C# and Unreal uses C++. Proficiency in the scripting language of your chosen engine is required to build any AR/VR interaction.","resources":["Unity C# Scripting Docs","C# Player's Guide (book)","Unreal C++ Tutorial"],"estimated_weeks":8},"3D Math & Spatial Computing":{"priority":"critical","reason":"AR/VR is entirely spatial. Quaternions, 3D transformations, raycasting, and coordinate spaces are core mathematical concepts for this field.","resources":["3Blue1Brown Linear Algebra","Math for Game Developers (YouTube)","Immersive Math (free)"],"estimated_weeks":6},"XR SDKs (OpenXR/ARKit/ARCore)":{"priority":"important","reason":"Cross-platform XR development uses OpenXR, ARKit (Apple), and ARCore (Google). These SDKs enable spatial tracking, hand tracking, and AR anchors.","resources":["OpenXR Official Documentation","Apple ARKit Documentation","Google ARCore Guide"],"estimated_weeks":5},"3D Modeling & Asset Pipeline":{"priority":"important","reason":"AR/VR developers need to understand how 3D assets are created, optimized, and imported, even if they do not create them.","resources":["Blender Official Tutorials","Unity Asset Optimization Guide","glTF Format Documentation"],"estimated_weeks":4},"UI/UX for Spatial Interfaces":{"priority":"important","reason":"Designing interfaces in 3D space requires specialized UX thinking including diegetic UI, gaze interaction, and motion sickness prevention guidelines.","resources":["Meta Quest Design Guidelines","Microsoft MR Design Docs","Oculus VR Design Best Practices"],"estimated_weeks":3},"Performance Optimization":{"priority":"advanced","reason":"VR requires 90+ FPS to prevent motion sickness. Occlusion culling, LODs, draw call batching, and shader optimization are essential for VR performance.","resources":["Unity VR Performance Guide","Unreal VR Optimization","Meta Quest Performance Guidelines"],"estimated_weeks":4}}},"Robotics Programmer":{"icon":"🦾","description":"Program robots and autonomous systems to perceive, decide, and act.","required_skills":{"C++ & Python":{"priority":"critical","reason":"C++ is used for real-time, performance-critical robot control. Python is used for high-level logic, perception, and ROS 2 scripting. Both are essential.","resources":["C++ Primer (book)","ROS 2 Python Tutorials","LearnCPP.com"],"estimated_weeks":8},"ROS 2 (Robot Operating System)":{"priority":"critical","reason":"ROS 2 is the standard middleware for robotics. It handles sensor data, inter-process communication, and robot simulation. Virtually every robotics job uses it.","resources":["ROS 2 Official Documentation","The Construct ROS Tutorials","ROS 2 for Beginners (Udemy)"],"estimated_weeks":8},"Kinematics & Robot Control":{"priority":"critical","reason":"Programming robot motion requires understanding forward/inverse kinematics, PID controllers, and trajectory planning.","resources":["Modern Robotics (Northwestern - free)","Introduction to Robotics (Stanford)","MoveIt Documentation"],"estimated_weeks":8},"Sensor Integration (LIDAR, Camera, IMU)":{"priority":"important","reason":"Robots perceive their environment through sensors. Integrating and processing LIDAR point clouds, camera images, and IMU data is a core robotics skill.","resources":["ROS 2 Sensor Tutorials","PCL (Point Cloud Library) Docs","OpenCV for Robotics"],"estimated_weeks":5},"SLAM & Navigation":{"priority":"important","reason":"Simultaneous Localization and Mapping enables robots to navigate unknown environments. Nav2 in ROS 2 implements SLAM and path planning.","resources":["Nav2 Documentation","SLAM Toolbox ROS 2","Probabilistic Robotics (book)"],"estimated_weeks":6},"Simulation (Gazebo/Isaac Sim)":{"priority":"important","reason":"Testing robot software in simulation before deploying to hardware saves time and prevents damage. Gazebo and NVIDIA Isaac Sim are standard tools.","resources":["Gazebo Official Documentation","NVIDIA Isaac Sim Tutorials","ROS 2 Simulation Guide"],"estimated_weeks":4},"Machine Learning for Robotics":{"priority":"advanced","reason":"Reinforcement learning and computer vision are increasingly used for robot manipulation, grasping, and autonomous decision-making.","resources":["Reinforcement Learning (Sutton & Barto free)","OpenAI Gym Documentation","ROS 2 + ML Integration"],"estimated_weeks":8}}},"Database Developer":{"icon":"🗄️","description":"Design, optimize, and manage databases that power applications and analytics.","required_skills":{"SQL (Advanced)":{"priority":"critical","reason":"Advanced SQL including window functions, CTEs, complex joins, subqueries, and stored procedures is the primary skill of a database developer.","resources":["Mode Analytics SQL Tutorial","LeetCode SQL Hard Problems","SQL Performance Explained (book)"],"estimated_weeks":6},"Database Design & Normalization":{"priority":"critical","reason":"Designing efficient schemas with proper normalization, ER diagrams, and relationship design prevents data redundancy and ensures integrity.","resources":["Database Design for Mere Mortals (book)","ERDPlus Tool","Stanford DB Course (free)"],"estimated_weeks":5},"PostgreSQL or MySQL":{"priority":"critical","reason":"Deep expertise in at least one major RDBMS including configuration, administration, and advanced features is the core database developer skill.","resources":["PostgreSQL Official Docs","MySQL Documentation","PostgreSQL Up & Running (book)"],"estimated_weeks":6},"Query Optimization & Indexing":{"priority":"important","reason":"Database performance is determined by query plans and indexes. Understanding EXPLAIN, index types, and query tuning is essential for production databases.","resources":["Use The Index, Luke! (free)","PostgreSQL EXPLAIN Documentation","SQL Performance Tuning Guide"],"estimated_weeks":5},"NoSQL Databases":{"priority":"important","reason":"Different problems require different databases. MongoDB for documents, Redis for caching, Cassandra for time-series. Knowing when to use each is critical.","resources":["MongoDB University (free)","Redis University","Cassandra Documentation"],"estimated_weeks":4},"Database Administration":{"priority":"important","reason":"Database developers need DBA skills including backups, replication, security, user management, and high availability configurations.","resources":["PostgreSQL DBA Guide","MySQL Administration Book","AWS RDS Documentation"],"estimated_weeks":4},"Data Warehousing & ETL":{"priority":"advanced","reason":"Building data pipelines and warehouses with Snowflake, Redshift, or BigQuery using ETL processes is a specialized, high-demand database skill.","resources":["dbt Documentation","Snowflake Getting Started","Apache Airflow Tutorial"],"estimated_weeks":6}}}};
 
-  form.addEventListener("submit", function(e) {
-    e.preventDefault();
-    errBox.hidden = true;
+// FRESHER RULES
+const FRESHER_RULES=[{interests:["Web Development"],subjects:["Programming"],careers:["Frontend Developer","Web Developer","Full Stack Developer"],reason:"Your interest in Web Development combined with Programming knowledge is the ideal starting point for frontend and full-stack roles."},{interests:["Web Development","Problem Solving"],subjects:["Programming","Mathematics"],careers:["Backend Developer","Full Stack Developer","Software Developer"],reason:"Combining Web Development interest with Problem Solving and Mathematics maps directly to backend and software development roles."},{interests:["AI/ML"],subjects:["Mathematics","Programming"],careers:["AI Engineer","Machine Learning Engineer","Data Scientist"],reason:"AI/ML interest paired with Mathematics and Programming is the classic foundation for AI engineering and machine learning roles."},{interests:["AI/ML","Data Analysis"],subjects:["Mathematics","Statistics"],careers:["Data Scientist","Machine Learning Engineer","NLP Engineer"],reason:"Interest in both AI/ML and Data Analysis with strong Mathematics/Statistics subjects aligns perfectly with Data Science and ML paths."},{interests:["Data Analysis"],subjects:["Statistics","Mathematics"],careers:["Data Scientist","Database Developer","Machine Learning Engineer"],reason:"Data Analysis interest with Statistics and Mathematics background points directly to data-focused career paths."},{interests:["UI Design"],subjects:["Design","Programming"],careers:["Frontend Developer","Mobile App Developer","Web Developer"],reason:"UI Design interest with Programming knowledge is the ideal combination for frontend and mobile roles where visual skills matter."},{interests:["UI Design"],subjects:["Design"],careers:["Frontend Developer","AR/VR Developer","Mobile App Developer"],reason:"A strong Design background with UI interest aligns well with visual and experience-focused development roles."},{interests:["Problem Solving"],subjects:["Mathematics","Programming"],careers:["Software Engineer","Software Developer","Backend Developer"],reason:"Strong Problem Solving interest combined with Mathematics and Programming is the core profile for software engineering roles."},{interests:["Problem Solving","AI/ML"],subjects:["Programming","Statistics"],careers:["AI Engineer","Software Engineer","Computer Vision Engineer"],reason:"Problem Solving with AI/ML interest and Programming/Statistics background maps to AI engineering and advanced software roles."},{interests:["Data Analysis","Problem Solving"],subjects:["Statistics","Programming"],careers:["Data Scientist","Backend Developer","Database Developer"],reason:"Combining analytical interest with programming skills is a natural fit for data science and backend engineering."}];
 
-    const name       = document.getElementById("userName").value.trim();
-    const education  = document.getElementById("userEducation").value.trim();
-    const experience = document.querySelector('input[name="experience"]:checked')?.value;
+// STATE
+let userName='', userEdu='';
 
-    if (!name || !education || !experience) {
-      errBox.textContent = "Please fill in all fields and select your experience level.";
-      errBox.hidden = false;
-      return;
-    }
+// ══════════════════════════════════════════════════════════
+// PAGE NAVIGATION
+// ══════════════════════════════════════════════════════════
+function showPage(id, bcHTML){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  window.scrollTo(0,0);
+  var nav = document.getElementById('headerNav');
+  if(bcHTML){ nav.innerHTML = bcHTML; nav.className='breadcrumb'; }
+  else { nav.innerHTML='<span class="nav-tag">AI-Powered</span><span class="nav-tag">Explainable</span><span class="nav-tag">Personalized</span>'; nav.className='header-nav'; }
+}
+function goHome(){ showPage('home', null); }
 
-    // Store in sessionStorage so next page can read it
-    sessionStorage.setItem("cl_name",       name);
-    sessionStorage.setItem("cl_education",  education);
-    sessionStorage.setItem("cl_experience", experience);
+// ══════════════════════════════════════════════════════════
+// PROFILE SUBMIT
+// ══════════════════════════════════════════════════════════
+function submitProfile(e){
+  e.preventDefault();
+  var err = document.getElementById('profile-error');
+  err.hidden = true;
+  userName = document.getElementById('p-name').value.trim();
+  userEdu  = document.getElementById('p-education').value.trim();
+  var exp  = document.querySelector('input[name="exp"]:checked');
+  if(!userName||!userEdu||!exp){ err.textContent='Please fill in all fields and select your experience level.'; err.hidden=false; return; }
+  if(exp.value==='fresher'){
+    document.getElementById('fresher-welcome').textContent='Hi '+userName+'! Based on your interests and favourite subjects, we will recommend the best career paths for you.';
+    document.getElementById('fresher-results').hidden=true;
+    document.getElementById('fresher-results-container').innerHTML='';
+    showPage('fresher','<span class="bc-done">01 Profile</span><span class="bc-sep">&#8250;</span><span class="bc-active">02 Interests</span><span class="bc-sep">&#8250;</span><span class="bc-todo">03 Results</span>');
+  } else {
+    document.getElementById('exp-welcome').textContent='Welcome, '+userName+'! Select your target career and list your current skills.';
+    populateCareerSelect();
+    document.getElementById('exp-results').hidden=true;
+    document.getElementById('exp-results-container').innerHTML='';
+    showPage('experienced','<span class="bc-done">01 Profile</span><span class="bc-sep">&#8250;</span><span class="bc-active">02 Skills</span><span class="bc-sep">&#8250;</span><span class="bc-todo">03 Results</span>');
+  }
+}
 
-    if (experience === "fresher") {
-      window.location.href = "/fresher";
-    } else {
-      window.location.href = "/experienced";
+function populateCareerSelect(){
+  var sel = document.getElementById('e-career');
+  sel.innerHTML='<option value="" disabled selected>— Select your target career —</option>';
+  Object.keys(CAREERS).forEach(function(name){
+    var o=document.createElement('option'); o.value=name; o.textContent=CAREERS[name].icon+' '+name; sel.appendChild(o);
+  });
+}
+
+// Skill chips live preview
+document.getElementById('e-skills').addEventListener('input',function(){
+  var chips=document.getElementById('e-skill-chips');
+  chips.innerHTML='';
+  this.value.split(',').map(s=>s.trim()).filter(Boolean).forEach(function(s){
+    var c=document.createElement('span'); c.className='skill-chip'; c.textContent=s; chips.appendChild(c);
+  });
+});
+
+// ══════════════════════════════════════════════════════════
+// FRESHER SUBMIT
+// ══════════════════════════════════════════════════════════
+function submitFresher(e){
+  e.preventDefault();
+  var err=document.getElementById('fresher-error'), btn=document.getElementById('fresher-btn');
+  err.hidden=true;
+  var interests=[...document.querySelectorAll('input[name="interest"]:checked')].map(el=>el.value);
+  var subjects=[...document.querySelectorAll('input[name="subject"]:checked')].map(el=>el.value);
+  if(!interests.length&&!subjects.length){ err.textContent='Please select at least one interest or subject.'; err.hidden=false; return; }
+  setLoading(btn,true);
+  setTimeout(function(){
+    var recs=recommendCareers(interests,subjects);
+    renderFresherResults({name:userName,interests,subjects,recommendations:recs});
+    setLoading(btn,false);
+  },600);
+}
+
+function recommendCareers(interests,subjects){
+  var scored={};
+  FRESHER_RULES.forEach(function(rule){
+    var is=rule.interests.filter(i=>interests.includes(i)).length;
+    var ss=rule.subjects.filter(s=>subjects.includes(s)).length;
+    var score=(is*2)+ss;
+    if(score>0) rule.careers.forEach(function(c){
+      var cRank=rule.careers.indexOf(c); if(CAREERS[c]&&(!scored[c]||scored[c].score<score||(scored[c].score===score&&cRank<scored[c].rank))) scored[c]={career:c,score,rank:cRank,reason:rule.reason,icon:CAREERS[c].icon,description:CAREERS[c].description};
+    });
+  });
+  var top=Object.values(scored).sort((a,b)=>b.score-a.score||a.rank-b.rank).slice(0,3);
+  if(!top.length){ var fb='Software Developer'; top=[{career:fb,score:0,reason:'Software Development is a great starting point as it builds foundational skills applicable to any tech career.',icon:CAREERS[fb].icon,description:CAREERS[fb].description}]; }
+  return top.map(function(item){
+    var analysis=analyzeSkillGap([],CAREERS[item.career]);
+    var maxScore=Math.max(1,(interests.length*2)+subjects.length); var pct=Math.min(100,Math.round((item.score/maxScore)*100)); return {career:item.career,icon:item.icon,description:item.description,match_reason:item.reason,match_score:item.score,match_pct:pct,roadmap:analysis.roadmap,missing_skills:analysis.missing_skills,total_weeks:analysis.total_weeks};
+  });
+}
+
+// ══════════════════════════════════════════════════════════
+// EXPERIENCED SUBMIT
+// ══════════════════════════════════════════════════════════
+function submitExperienced(e){
+  e.preventDefault();
+  var err=document.getElementById('exp-error'), btn=document.getElementById('exp-btn');
+  err.hidden=true;
+  var skills=document.getElementById('e-skills').value.trim();
+  var career=document.getElementById('e-career').value;
+  if(!skills||!career){ err.textContent='Please enter your skills and select a target career.'; err.hidden=false; return; }
+  var userSkills=skills.split(',').map(s=>s.trim()).filter(Boolean);
+  setLoading(btn,true);
+  setTimeout(function(){
+    var cd=CAREERS[career], result=analyzeSkillGap(userSkills,cd);
+    renderExpResults({name:userName,career,career_icon:cd.icon,career_description:cd.description,user_skills:userSkills,...result});
+    setLoading(btn,false);
+  },600);
+}
+
+// ══════════════════════════════════════════════════════════
+// CORE AI LOGIC (ported from Python)
+// ══════════════════════════════════════════════════════════
+function normSkill(s){ return s.trim().toLowerCase(); }
+var SKILL_ALIASES={
+  'js':'javascript','ts':'typescript','ml':'machine learning',
+  'ai':'artificial intelligence','dl':'deep learning',
+  'css3':'css','html5':'html','node':'node.js','nodejs':'node.js',
+  'react.js':'react or vue','vue.js':'react or vue','reactjs':'react or vue',
+  'postgres':'postgresql or mysql','mysql':'postgresql or mysql',
+  'postgresql':'postgresql or mysql','mongo':'nosql databases',
+  'mongodb':'nosql databases','tailwind':'css frameworks (tailwind)',
+  'tf':'deep learning & neural networks','pytorch':'deep learning & neural networks',
+  'tensorflow':'deep learning & neural networks','aws':'cloud platforms',
+  'gcp':'cloud platforms','azure':'cloud platforms','docker':'docker & containers',
+  'k8s':'kubernetes','bash':'linux & shell scripting','linux':'linux & shell scripting',
+  'pen testing':'penetration testing methodology','pentest':'penetration testing methodology',
+  'cv':'openCV','llm':'large language models','llms':'large language models',
+  'nlp':'linguistics & text processing','git':'git & version control',
+  'version control':'git & version control','oop':'object-oriented programming',
+  'dsa':'data structures & algorithms','sql':'sql (advanced)',
+  'nosql':'nosql databases','stats':'statistics','maths':'mathematics',
+  'math':'mathematics','c sharp':'c# or c++','csharp':'c# or c++',
+  'solidity':'solidity & smart contracts','rtos':'real-time operating systems (rtos)'
+};
+function resolveAlias(s){
+  var n=normSkill(s);
+  return SKILL_ALIASES[n]||n;
+}
+
+function analyzeSkillGap(userSkills,careerData){
+  var req=careerData.required_skills, present=[], mc=[], mi=[], ma=[];
+  Object.keys(req).forEach(function(sName){
+    var si=req[sName], sn=normSkill(sName);
+    var found=userSkills.some(function(us){ var un=normSkill(us); var ua=resolveAlias(us); return sn.includes(un)||un.includes(sn)||sn.includes(ua)||ua.includes(sn); });
+    if(found){ present.push(sName); }
+    else {
+      var entry={name:sName,priority:si.priority,reason:si.reason,resources:si.resources,estimated_weeks:si.estimated_weeks};
+      if(si.priority==='critical') mc.push(entry);
+      else if(si.priority==='important') mi.push(entry);
+      else ma.push(entry);
     }
   });
+  var missing=[...mc,...mi,...ma];
+  var total=Object.keys(req).length, score=total?Math.round((present.length/total)*100):0;
+  var readiness=score>=80?'Job-Ready':score>=50?'Intermediate':score>=25?'Developing':'Beginner';
+  var rc=score>=80?'green':score>=50?'orange':score>=25?'yellow':'red';
+  return {present_skills:present,missing_skills:missing,match_score:score,readiness_level:readiness,readiness_color:rc,roadmap:buildRoadmap(missing),total_weeks:missing.reduce((s,x)=>s+x.estimated_weeks,0)};
+}
+
+function buildRoadmap(missing){
+  var roadmap=[], step=1;
+  var phases=[['critical','Phase 1 - Foundations'],['important','Phase 2 - Core Skills'],['advanced','Phase 3 - Advanced Mastery']];
+  phases.forEach(function([pk,pl]){
+    missing.filter(s=>s.priority===pk).forEach(function(skill){
+      var label=pk==='critical'?'foundational prerequisite':pk==='important'?'core competency':'specialized advanced skill';
+      roadmap.push({step,phase:pl,phase_key:pk,skill:skill.name,reason:skill.reason,resources:skill.resources,estimated_weeks:skill.estimated_weeks,xai_explanation:"Step "+step+" places '"+skill.name+"' here because it is a "+label+" for this career path."});
+      step++;
+    });
+  });
+  return roadmap;
+}
+
+// ══════════════════════════════════════════════════════════
+// RENDERERS
+// ══════════════════════════════════════════════════════════
+function renderFresherResults(data){
+  var sec=document.getElementById('fresher-results'), con=document.getElementById('fresher-results-container');
+  var html='<div class="results-header results-animate"><div><div class="results-greeting">Career recommendations for</div><h2 class="results-title">'+esc(data.name)+'</h2><p style="color:var(--text3);font-size:14px;margin-top:6px;">Interests: <strong style="color:var(--accent)">'+(data.interests.join(', ')||'—')+'</strong> &nbsp;&middot;&nbsp; Subjects: <strong style="color:var(--accent2)">'+(data.subjects.join(', ')||'—')+'</strong></p></div><div style="font-size:48px">&#x1F331;</div></div><div class="rec-grid">';
+  data.recommendations.forEach(function(r,i){ html+=renderRecCard(r,i+1); });
+  html+='</div>';
+  con.innerHTML=html; sec.hidden=false;
+  sec.scrollIntoView({behavior:'smooth',block:'start'});
+  triggerSteps();
+  setTimeout(function(){ document.querySelectorAll('.match-fill').forEach(function(el){ el.style.width=el.getAttribute('data-width'); }); }, 300);
+  document.getElementById('headerNav').innerHTML='<span class="bc-done">01 Profile</span><span class="bc-sep">&#8250;</span><span class="bc-done">02 Interests</span><span class="bc-sep">&#8250;</span><span class="bc-active">03 Results</span>';
+}
+
+function renderRecCard(rec,rank){
+  var pct=rec.match_pct||0;
+  var tier=pct>=70?'high':pct>=40?'mid':'low';
+  var tierLabel=pct>=70?'Strong Match':pct>=40?'Good Match':'Partial Match';
+  var tierIcon=pct>=70?'&#x2705;':pct>=40?'&#x1F7E1;':'&#x1F7E0;';
+  var html='<div class="rec-card results-animate"><div class="rec-card-header"><div class="rec-rank">#'+rank+'</div><span class="rec-icon">'+esc(rec.icon)+'</span><div style="flex:1"><div class="rec-title">'+esc(rec.career)+'</div><div class="rec-desc">'+esc(rec.description)+'</div></div></div>';
+  var rankNote=rank===1?'Best match for your profile':rank===2?'Strong alternative path':'Worth exploring'; html+='<span class="score-badge '+tier+'" title="'+rankNote+'">'+tierIcon+' '+tierLabel+' &mdash; '+pct+'% compatibility</span>';
+  html+='<div class="match-meter-wrap"><div class="match-meter-label"><span>Profile Match Score</span><strong>'+pct+'%</strong></div><div class="match-track"><div class="match-fill '+tier+'" style="width:0" data-width="'+pct+'%"></div></div></div>';
+  html+='<div class="xai-panel open" style="margin-bottom:16px;margin-top:16px"><div class="xai-label">&#x2B21; AI Recommendation Reason</div><p class="xai-reason">'+esc(rec.match_reason)+'</p></div>';
+  html+='<div style="margin-bottom:16px"><div class="section-title" style="font-size:20px;margin-bottom:10px">Skills to Learn <span class="tag tag-red">'+rec.missing_skills.length+' skills</span></div><div class="present-skills-list">';
+  rec.missing_skills.slice(0,5).forEach(function(s){ html+='<span class="skill-chip" style="background:rgba(96,192,240,.1);border-color:rgba(96,192,240,.2);color:var(--accent2)">'+esc(s.name)+'</span>'; });
+  if(rec.missing_skills.length>5) html+='<span class="skill-chip" style="color:var(--text3)">+' +(rec.missing_skills.length-5)+' more</span>';
+  html+='</div></div>';
+  html+='<div class="total-time-banner" style="margin-bottom:20px"><div><div class="total-time-label">Estimated Time to Job-Ready</div><div class="total-time-note">studying ~10 hrs/week</div></div><div style="text-align:right"><div class="total-time-value">'+rec.total_weeks+' weeks</div><div class="total-time-note">approx. '+Math.round(rec.total_weeks/4)+' months</div></div></div>';
+  html+='<button class="toggle-roadmap-btn" onclick="toggleRoadmap(this)">Show Learning Roadmap ('+rec.roadmap.length+' steps) &#9660;</button>';
+  html+='<div class="roadmap-panel" hidden><div class="roadmap-timeline" style="margin-top:16px">';
+  rec.roadmap.forEach(function(s){ html+=renderStep(s); });
+  html+='</div></div></div>';
+  return html;
+}
+
+function renderExpResults(data){
+  var sec=document.getElementById('exp-results'), con=document.getElementById('exp-results-container');
+  var rc=data.readiness_color;
+  var html='<div class="results-header results-animate"><div><div class="results-greeting">Skill gap analysis for</div><h2 class="results-title">'+esc(data.name)+'</h2></div><div class="career-badge"><span class="career-badge-icon">'+esc(data.career_icon)+'</span><span class="career-badge-name">'+esc(data.career)+'</span></div></div>';
+  html+='<div class="score-panel results-animate"><div class="score-card"><div class="score-card-label">Match Score</div><div class="score-card-value '+rc+'">'+data.match_score+'%</div><div class="score-card-sub">of required skills</div></div><div class="score-card"><div class="score-card-label">Readiness</div><div class="score-card-value '+rc+'">'+esc(data.readiness_level)+'</div><div class="score-card-sub">current level</div></div><div class="score-card"><div class="score-card-label">Learning Time</div><div class="score-card-value accent">'+data.total_weeks+'</div><div class="score-card-sub">weeks to job-ready</div></div></div>';
+  html+='<div class="progress-bar-wrap results-animate"><div class="progress-bar-label"><span>Skill Match Progress</span><span>'+data.present_skills.length+' / '+(data.present_skills.length+data.missing_skills.length)+' skills</span></div><div class="progress-track"><div class="progress-fill" id="pFill"></div></div></div>';
+  html+='<div class="results-animate"><div class="section-title">Skills You Have <span class="tag tag-green">'+data.present_skills.length+' matched</span></div>';
+  if(data.present_skills.length){ html+='<div class="present-skills-list">'; data.present_skills.forEach(s=>{ html+='<span class="present-chip">'+esc(s)+'</span>'; }); html+='</div>'; }
+  else html+='<p style="color:var(--text3);font-size:14px;margin-bottom:40px">No matching skills yet — we will build from the ground up!</p>';
+  html+='</div><div class="results-animate"><div class="section-title">Skills to Learn <span class="tag tag-red">'+data.missing_skills.length+' gaps</span></div>';
+  if(!data.missing_skills.length) html+='<div class="all-present-banner"><div class="all-present-icon">&#x1F389;</div><div class="all-present-title">You are Job-Ready!</div><p style="color:var(--text3);font-size:14px">You have all the required skills.</p></div>';
+  else { html+='<div class="missing-skills-list">'; data.missing_skills.forEach(s=>{ html+=renderMissing(s); }); html+='</div>'; }
+  html+='</div>';
+  if(data.roadmap.length){
+    html+='<div class="roadmap-section results-animate"><div class="section-title">Your Learning Roadmap <span class="tag tag-blue">'+data.roadmap.length+' steps</span></div><p style="color:var(--text3);font-size:14px;margin-bottom:28px">Each step is ordered by learning priority with AI explanations.</p><div class="roadmap-timeline" id="rmLine">';
+    data.roadmap.forEach(s=>{ html+=renderStep(s); });
+    html+='</div><div class="total-time-banner"><div><div class="total-time-label">Total Estimated Time</div><div class="total-time-note">studying ~10 hrs/week</div></div><div style="text-align:right"><div class="total-time-value">'+data.total_weeks+' weeks</div><div class="total-time-note">approx. '+Math.round(data.total_weeks/4)+' months</div></div></div></div>';
+  }
+  con.innerHTML=html; sec.hidden=false;
+  sec.scrollIntoView({behavior:'smooth',block:'start'});
+  setTimeout(()=>{ var f=document.getElementById('pFill'); if(f) f.style.width=data.match_score+'%'; },300);
+  triggerSteps();
+  document.querySelectorAll('.missing-skill-card').forEach(card=>{
+    card.addEventListener('click',function(){
+      var p=card.querySelector('.xai-panel'), open=p.classList.contains('open');
+      document.querySelectorAll('.xai-panel').forEach(x=>x.classList.remove('open'));
+      document.querySelectorAll('.missing-skill-card').forEach(c=>c.classList.remove('expanded'));
+      if(!open){ p.classList.add('open'); card.classList.add('expanded'); }
+    });
+  });
+  document.getElementById('headerNav').innerHTML='<span class="bc-done">01 Profile</span><span class="bc-sep">&#8250;</span><span class="bc-done">02 Skills</span><span class="bc-sep">&#8250;</span><span class="bc-active">03 Results</span>';
+  document.getElementById('headerNav').className='breadcrumb';
+}
+
+function renderMissing(skill){
+  var p=skill.priority.charAt(0).toUpperCase()+skill.priority.slice(1);
+  return '<div class="missing-skill-card" tabindex="0"><div class="priority-dot '+esc(skill.priority)+'"></div><div><div class="missing-skill-name">'+esc(skill.name)+'</div><div class="missing-skill-priority">'+p+'</div></div><div class="missing-skill-weeks">~'+skill.estimated_weeks+'w</div><div class="xai-panel"><div class="xai-label">&#x2B21; AI Explanation</div><p class="xai-reason">'+esc(skill.reason)+'</p><div class="xai-resources-label">Resources</div><div class="xai-resources">'+skill.resources.map(r=>'<span class="xai-resource">'+esc(r)+'</span>').join('')+'</div></div></div>';
+}
+
+function renderStep(step){
+  return '<div class="roadmap-step '+esc(step.phase_key)+'"><div class="step-node">'+step.step+'</div><div class="step-card"><div class="step-phase">'+esc(step.phase)+'</div><div class="step-skill">'+esc(step.skill)+'</div><div class="step-xai">'+esc(step.xai_explanation)+'</div><div class="step-meta"><span class="step-weeks">&#9201; ~'+step.estimated_weeks+' weeks</span><div class="step-resources">'+step.resources.slice(0,2).map(r=>'<span class="step-resource">'+esc(r)+'</span>').join('')+'</div></div></div></div>';
+}
+
+function toggleRoadmap(btn){
+  var panel=btn.nextElementSibling; panel.hidden=!panel.hidden;
+  btn.textContent=panel.hidden?'Show Learning Roadmap ('+panel.querySelectorAll('.roadmap-step').length+' steps) \u25BE':'Hide Learning Roadmap \u25B4';
+  if(!panel.hidden) panel.querySelectorAll('.roadmap-step').forEach((s,i)=>setTimeout(()=>s.classList.add('visible'),i*50));
+}
+
+function triggerSteps(){
+  setTimeout(()=>{ document.querySelectorAll('.roadmap-step').forEach((s,i)=>setTimeout(()=>s.classList.add('visible'),i*60)); },400);
+}
+
+function setLoading(btn,on){
+  btn.disabled=on;
+  btn.querySelector('.btn-text').hidden=on;
+  btn.querySelector('.btn-arrow').hidden=on;
+  btn.querySelector('.btn-loader').hidden=!on;
+}
+
+function esc(str){
+  if(typeof str!=='string') return String(str);
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+}
 </script>
 </body>
 </html>
